@@ -1,0 +1,28 @@
+.content {
+    margin: 0 auto;
+    width: 90%;
+}
+
+table {
+    width: 100%;
+}
+
+form.myinline div {
+    display: inline-block;
+}
+
+form.myinline label {
+    margin-bottom: 0;
+}
+
+.loading {
+    position: absolute;
+    border: 1px solid blue;
+    background-color: #05F;
+    left: 43%;
+    padding: 5px;
+}
+
+#hiddenDownload {
+    display: none;
+}

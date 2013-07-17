@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>XML de notas fiscais</title>
+    <link rel="stylesheet" href="/css/bootstrap.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="/css/app.css" type="text/css" media="screen" charset="utf-8">
+  </head>
+<body ng-app="appNota">
+
+        <div class="content" ng-controller="NotasCtrl">
+            <span id="loading" class="loading" ng-show="loading">Carregando...</span>
+            <form method="POST" class="myinline">
+                <fieldset>
+                    <legend>Gerar XML</legend>
+                    <div class="form-horizontal">
+                        <label for="datainicial">Data Inicial</label>
+                        <input type="text" dateformat ng-model="dataInicial" name="datainicial"> 
+                    </div>
+                    <div class="form-horizontal">
+                        <label for="datafinal">Data final</label>
+                        <input type="text" dateformat ng-model="dataFinal" name="datafinal"> 
+                        <button ng-click="baixaNotas()" ng-disabled="loading" class="btn btn-primary">Listar</button>
+                        <button ng-click="baixaXML()" ng-show="!loading && notas" class="btn">Baixar XML</button>
+                    </div>
+                </fieldset>
+            </form>
+
+            <div>
+                Total: {{notas.length}} notas
+            </div>
+
+            <table class="table table-condensed table-hover">
+                <tr>
+                    <th>Emissão</th>
+                    <th>Número</th>
+                    <th>Nome</th>
+                    <th>Valor</th>
+                </tr>
+                <tr ng-repeat="nota in notas">
+                    <td>{{nota.emissao|formatadata}}</td>
+                    <td>{{nota.numero}}</td>
+                    <td>{{nota.nome}}</td>
+                    <td>{{nota.valor|formatavalor}}</td>
+                </tr>
+            </table>
+
+            <span>{{modelteste}}</span>
+            
+            <button ng-show="modelteste" class="btn">Botão</button>
+            <iframe ng-src="{{notafiscal}}" id="hiddenDownload"></iframe>
+        </div>
+
+    <script src="js/angular.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
+
