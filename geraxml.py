@@ -2,6 +2,11 @@
 import MySQLdb
 import re
 from xml.dom.minidom import Document
+import sys
+
+mes    = sys.argv[1]
+inicio = sys.argv[2]
+fim    = sys.argv[3]
 
 conn = MySQLdb.connect("localhost", "admmysql", "1234", "vigo")
 qry = conn.cursor()
@@ -12,8 +17,9 @@ doc = Document()
 importacao = doc.createElement("importacao")
 doc.appendChild(importacao)
 
+# create view usuarios_unicos as select * from usuarios group by nome, cpfcgc order by situacao;
 qry.execute("""\
-SELECT
+SELECT DISTINCT
     nf.numero as numero_nota,
     dt_emissao as rps_data,
     nf.nome as tomador_nome,
@@ -28,15 +34,21 @@ SELECT
     IFNULL(us.email, '') as tomador_email,
     nf.natureza as discriminacao,
     nf.valor_servicos as basecalculo,
-    nf.valor_iss as issretido
+    nf.valor_iss as issretido,
+    nf.rgie
 FROM nf
-LEFT JOIN usuarios us on (nf.nome=us.nome AND nf.cpfcnpj=us.cpfcgc)
-WHERE dt_emissao BETWEEN '2013-01-01' AND '2013-01-31'
-""")
+LEFT JOIN usuarios_unicos us on (nf.nome=us.nome AND nf.cpfcnpj=us.cpfcgc)
+WHERE dt_emissao BETWEEN %s AND %s
+""", (inicio, fim))
 
 for nf in qry:
-    print nf[0]
+    print nf[0], nf[2].decode('latin1')
+
     nota = doc.createElement("nota")
+
+    rps_numero = doc.createElement("rps_numero")
+    rps_numero.appendChild(doc.createTextNode(str(nf[0])))
+    nota.appendChild(rps_numero)
 
     rps_data = doc.createElement("rps_data")
     rps_data.appendChild(doc.createTextNode(str(nf[1])))
@@ -46,16 +58,23 @@ for nf in qry:
     tomador_nome.appendChild(doc.createTextNode(nf[2].decode('latin1')))
     nota.appendChild(tomador_nome)
 
-    tomador_cpfcnpj = doc.createElement("tomador_cpfcnpj")
-    tomador_cpfcnpj.appendChild(doc.createTextNode(nf[3].decode('latin1')))
-    nota.appendChild(tomador_cpfcnpj)
+    tomador_cnpjcpf = doc.createElement("tomador_cnpjcpf")
+    tomador_cnpjcpf.appendChild(doc.createTextNode(nf[3].decode('latin1')))
+    nota.appendChild(tomador_cnpjcpf)
 
     tomador_inscrmunicipal = doc.createElement("tomador_inscrmunicipal")
-    tomador_inscrmunicipal.appendChild(doc.createTextNode(nf[4].decode('latin1')))
+    inscrmunicipal = nf[4].decode('latin1').strip()
+    tomador_inscrmunicipal.appendChild(doc.createTextNode(inscrmunicipal))
     nota.appendChild(tomador_inscrmunicipal)
+
+    tomador_inscrestadual = doc.createElement("tomador_inscrestadual")
+    inscest = nf[15].decode('latin1')
+    tomador_inscrestadual.appendChild(doc.createTextNode(inscest))
+    nota.appendChild(tomador_inscrestadual)
 
     logradouro = re.sub(',.+$', '', nf[5].decode('latin1'))
     numero = re.sub(u'.+,\s*[Nn]*[º°]*\s*', '', nf[5].decode('latin1'))
+    numero = re.sub(u'[^\d]', '', nf[5].decode('latin1'))
 
     tomador_logradouro = doc.createElement("tomador_logradouro")
     tomador_logradouro.appendChild(doc.createTextNode(logradouro))
@@ -86,52 +105,107 @@ for nf in qry:
     nota.appendChild(tomador_uf)
 
     tomador_email = doc.createElement("tomador_email")
-    tomador_email.appendChild(doc.createTextNode(nf[11].decode('latin1')))
+    email = nf[11].decode('latin1')
+    tomador_email.appendChild(doc.createTextNode(email))
     nota.appendChild(tomador_email)
 
-    discriminacao = doc.createElement("discriminacao")
-    discriminacao.appendChild(doc.createTextNode(nf[12].decode('latin1')))
-    nota.appendChild(discriminacao)
+    valortotal = doc.createElement("valortotal")
+    valortotal.appendChild(doc.createTextNode('%.2f' % nf[13]))
+    nota.appendChild(valortotal)
 
-    observacao = doc.createElement("observacao")
-    nota.appendChild(observacao)
+    deducoes = doc.createElement("deducoes")
+    deducoes.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(deducoes)
 
-    aliqinss = doc.createElement("aliqinss")
-    nota.appendChild(aliqinss)
+    acrescimo = doc.createElement("acrescimo")
+    acrescimo.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(acrescimo)
 
-    aliqirrf = doc.createElement("aliqirrf")
-    nota.appendChild(aliqirrf)
+    basecalculo = doc.createElement("basecalculo")
+    basecalculo.appendChild(doc.createTextNode('%.2f' % nf[13]))
+    nota.appendChild(basecalculo)
 
-    deducaoirrf = doc.createElement("deducaoirrf")
-    nota.appendChild(deducaoirrf)
+    aliqpercentual = doc.createElement("aliqpercentual")
+    aliqpercentual.appendChild(doc.createTextNode('2.00'))
+    nota.appendChild(aliqpercentual)
 
-    valordeducoes = doc.createElement("valordeducoes")
-    nota.appendChild(valordeducoes)
+    valoriss = doc.createElement("valoriss")
+    valoriss.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(valoriss)
+
+    issretido = doc.createElement("issretido")
+    issretido.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(issretido)
+
+    cofins = doc.createElement("cofins")
+    cofins.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(cofins)
+
+    irrf = doc.createElement("irrf")
+    irrf.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(irrf)
+
+    contribuicaosocial = doc.createElement("contribuicaosocial")
+    contribuicaosocial.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(contribuicaosocial)
+
+    pispasep = doc.createElement("pispasep")
+    pispasep.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(pispasep)
+
+    inss = doc.createElement("inss")
+    inss.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(inss)
+
+    totalretencoes = doc.createElement("totalretencoes")
+    totalretencoes.appendChild(doc.createTextNode('0.00'))
+    nota.appendChild(totalretencoes)
 
     estado = doc.createElement("estado")
-    estado.appendChild(doc.createTextNode('Normal'))
+    estado.appendChild(doc.createTextNode('N'))
     nota.appendChild(estado)
 
+    discriminacao = doc.createElement("discriminacao")
+    #discriminacao.appendChild(doc.createTextNode(nf[12].decode('latin1')))
+    discriminacao.appendChild(doc.createTextNode('PROVEDOR DE ACESSO A INTERNET'))
+    nota.appendChild(discriminacao)
+
+    observacoes = doc.createElement("observacoes")
+    observacoes.appendChild(doc.createTextNode(""))
+    nota.appendChild(observacoes)
+
+    motivocancelamento = doc.createElement("motivocancelamento")
+    motivocancelamento.appendChild(doc.createTextNode(''))
+    nota.appendChild(motivocancelamento)
+
     qry2.execute('select * from nf_servicos where numero=%s', nf[0])
-    codservico = doc.createElement("codservico")
-    for servico in qry2:
-        cservico = doc.createElement("codservico")
-        cservico.appendChild(doc.createTextNode('1.09'))
-        codservico.appendChild(cservico)
+    servicos = doc.createElement("servicos")
+    for nfs in qry2:
+        servico = doc.createElement("servico")
+
+        codigo = doc.createElement("codigo")
+        codigo.appendChild(doc.createTextNode('1.09'))
+        servico.appendChild(codigo)
 
         basecalculo = doc.createElement("basecalculo")
-        basecalculo.appendChild(doc.createTextNode(str(nf[13])))
-        codservico.appendChild(basecalculo)
+        basecalculo.appendChild(doc.createTextNode('%.2f' % nf[13]))
+        servico.appendChild(basecalculo)
+
+        valoriss = doc.createElement("valoriss")
+        valoriss.appendChild(doc.createTextNode('0.00'))
+        servico.appendChild(valoriss)
 
         issretido = doc.createElement("issretido")
-        issretido.appendChild(doc.createTextNode(str(nf[14])))
-        codservico.appendChild(issretido)
+        issretido.appendChild(doc.createTextNode("%.2f" % nf[14]))
+        servico.appendChild(issretido)
 
         discriminacao = doc.createElement("discriminacao")
-        discriminacao.appendChild(doc.createTextNode(servico[1].decode("latin1")))
-        codservico.appendChild(discriminacao)
+        discriminacao.appendChild(doc.createTextNode(nfs[1].decode("latin1")))
+        servico.appendChild(discriminacao)
 
-    nota.appendChild(codservico)
+        servicos.appendChild(servico)
+
+    nota.appendChild(servicos)
 
     importacao.appendChild(nota)
 
@@ -142,6 +216,6 @@ for nf in qry:
 
 xml = doc.toprettyxml(encoding='iso-8859-1')
 
-f = open('saida.xml','wb')
+f = open('%s.xml' % mes,'wb')
 f.write(xml)
 f.close()
