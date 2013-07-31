@@ -16,6 +16,7 @@ app.directive('dateformat', function () {
 app.factory('notas', ['$http', '$q', function ($http, $q) {
     var carregaNotas = function(inicio, fim) {
         var deferred = $q.defer();
+        
         $http({url: '/notas', method: 'get', params: {dataInicial: inicio, dataFinal: fim} })
             .success(function (data, rstatus, headers, config) {
                 deferred.resolve(data);
@@ -27,7 +28,7 @@ app.factory('notas', ['$http', '$q', function ($http, $q) {
     }
 }]);
 
-app.controller('NotasCtrl', function ($scope, $http, notas) {
+app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope) {
     $scope.loading = false;
     $scope.dataInicial = DataValida('01');
     $scope.dataFinal = DataValida('31');
@@ -44,8 +45,18 @@ app.controller('NotasCtrl', function ($scope, $http, notas) {
     };
 
     $scope.baixaXML = function () {
-        $scope.notafiscal = 'nota.xml';
+        // $scope.notafiscal = 'notas.xml?dataInicial='+$scope.dataInicial+'&dataFinal='+$scope.dataFinal;
+        var sse = new EventSource('notas.xml?dataInicial='+$scope.dataInicial+'&dataFinal='+$scope.dataFinal);
+        sse.addEventListener('message', function(msg) {
+            if (!msg) {
+                console.log
+                sse.close('Finalizando eventsource');
+            }
+            else
+                console.log(msg);
+        });
     }
+
 });
 
 app.filter('formatadata', function () {
@@ -61,9 +72,4 @@ app.filter('formatavalor', function () {
         return 'R$ ' + Array(valores[0], centavos).join(',');
     }
 });
-
-app.run(function () {
-    //$scope.baixaNotas();
-});
-
 

@@ -21,6 +21,11 @@ form.myinline label {
     background-color: #05F;
     left: 43%;
     padding: 5px;
+    color: #FFF;
+}
+
+.loading div {
+    text-align: center;
 }
 
 #hiddenDownload {

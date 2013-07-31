@@ -8,11 +8,16 @@
   </head>
 <body ng-app="appNota">
 
-        <div class="content" ng-controller="NotasCtrl">
-            <span id="loading" class="loading" ng-show="loading">Carregando...</span>
+        <div class="content" ng-controller="NotasCtrl" ng-init="baixaNotas()">
+            <div id="loading" class="loading" ng-show="loading">
+                Carregando...
+                <div>
+                    <img src="img/loading_bar.gif" />
+                </div>
+            </div>
             <form method="POST" class="myinline">
                 <fieldset>
-                    <legend>Gerar XML</legend>
+                    <legend>Gerar XML das notas fiscais</legend>
                     <div class="form-horizontal">
                         <label for="datainicial">Data Inicial</label>
                         <input type="text" dateformat ng-model="dataInicial" name="datainicial"> 
@@ -20,7 +25,7 @@
                     <div class="form-horizontal">
                         <label for="datafinal">Data final</label>
                         <input type="text" dateformat ng-model="dataFinal" name="datafinal"> 
-                        <button ng-click="baixaNotas()" ng-disabled="loading" class="btn btn-primary">Listar</button>
+                        <button ng-click="baixaNotas(dataInicial, dataFinal)" ng-disabled="loading" class="btn btn-primary">Listar</button>
                         <button ng-click="baixaXML()" ng-show="!loading && notas" class="btn">Baixar XML</button>
                     </div>
                 </fieldset>
