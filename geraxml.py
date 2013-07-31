@@ -1,3 +1,4 @@
+#!/usr/bin/python -u
 #coding: utf8
 import MySQLdb
 import re
@@ -42,7 +43,7 @@ WHERE dt_emissao BETWEEN %s AND %s
 """, (inicio, fim))
 
 for nf in qry:
-    print nf[0], nf[2].decode('latin1')
+    print nf[0], nf[2].decode('latin1').encode('utf8')
 
     nota = doc.createElement("nota")
 
