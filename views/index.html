@@ -50,15 +50,26 @@
                 </tr>
             </table>
 
-            <span>{{modelteste}}</span>
-            
-            <button ng-show="modelteste" class="btn">Botão</button>
             <iframe ng-src="{{notafiscal}}" id="hiddenDownload"></iframe>
+
+            <div id="overlay" ng-show="baixando">
+            </div>
+        </div>
+
+        <div ng-show="baixando" id="baixando" class="messagebox" ng-controller="BaixandoCtrl">
+            <div class="baixandoInner">
+                {{nome}}    
+                <div class="progress">
+                    <div class="bar" style="width: {{progresso}}%;">
+                    </div>
+                </div>
+            </div>
         </div>
 
     <script src="js/angular.min.js"></script>
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/filters.js"></script>
 
 </body>
 </html>

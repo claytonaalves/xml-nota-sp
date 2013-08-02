@@ -40,36 +40,48 @@ app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope) {
         notas.carregar($scope.dataInicial, $scope.dataFinal)
             .then(function (notas) {
                 $scope.notas = notas;    
+                $rootScope.totalNotas = notas.length;
                 $scope.loading = false;
             });
     };
 
     $scope.baixaXML = function () {
-        // $scope.notafiscal = 'notas.xml?dataInicial='+$scope.dataInicial+'&dataFinal='+$scope.dataFinal;
+        $rootScope.baixando = true;
         var sse = new EventSource('notas.xml?dataInicial='+$scope.dataInicial+'&dataFinal='+$scope.dataFinal);
+
         sse.addEventListener('message', function(msg) {
             if (!msg) {
                 console.log
-                sse.close('Finalizando eventsource');
+                sse.close();
             }
-            else
-                console.log(msg);
+            else {
+                $rootScope.$broadcast('progress', msg.data);
+            }
+        });
+
+        sse.addEventListener('end', function (msg) {
+            //console.log('arquivo gerado!', msg.data);
+            $rootScope.baixando = false;
+            sse.close();
+            // iniciar download do arquivo aqui
+            $scope.$apply(function() {
+                $scope.notafiscal = 'xml/'+msg.data;
+            });
         });
     }
 
 });
 
-app.filter('formatadata', function () {
-    return function (data) {
-        return data.substr(8,2) + '/' + data.substr(5, 2) + '/' + data.substr(0,4)
-    }
-});
-
-app.filter('formatavalor', function () {
-    return function (valor) {
-        var valores = valor.toString().split('.');
-        var centavos = (valores[1]+"0").substr(0, 2);
-        return 'R$ ' + Array(valores[0], centavos).join(',');
-    }
+app.controller('BaixandoCtrl', function ($scope, $rootScope) {
+    $scope.nome = 'Iniciando a geração do arquivo XML...';
+    $scope.progresso = 0;
+    var contador = 0;
+    $rootScope.$on('progress', function (e, nome) {
+        $scope.$apply(function() {
+            $scope.nome = nome;   
+            $scope.progresso = Math.round((contador*100)/$rootScope.totalNotas);
+            contador += 1;
+        })
+    });
 });
 

@@ -40,6 +40,7 @@ SELECT DISTINCT
 FROM nf
 LEFT JOIN usuarios_unicos us on (nf.nome=us.nome AND nf.cpfcnpj=us.cpfcgc)
 WHERE dt_emissao BETWEEN %s AND %s
+ORDER BY nf.nome
 """, (inicio, fim))
 
 for nf in qry:

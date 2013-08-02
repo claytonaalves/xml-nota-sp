@@ -31,3 +31,78 @@ form.myinline label {
 #hiddenDownload {
     display: none;
 }
+
+#baixando {
+    width: 450px;
+    height:70px;
+    text-align: left;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-left:-240px;
+    margin-top:-50px;   
+    background-color: #FFF;
+    opacity: 1;
+}
+
+.messagebox {
+    -webkit-background-clip: border-box;
+    -webkit-background-origin: padding-box;
+    -webkit-background-size: auto;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px 0px;
+    /* background-attachment: scroll;
+    background-clip: border-box; */
+    background-color: rgb(249, 237, 190);
+    /* background-image: none;
+    background-origin: padding-box;
+    background-size: auto; */
+    border-bottom-color: #dcdcdc;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    /* border-image-outset: 0px;
+    border-image-repeat: stretch;
+    border-image-slice: 100%;
+    border-image-source: none;
+    border-image-width: 1; */
+    border-left-color: #dcdcdc;
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-right-color: #dcdcdc;
+    border-right-style: solid;
+    border-right-width: 1px;
+    border-top-color: #dcdcdc;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border-top-style: solid;
+    border-top-width: 1px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px 0px;
+    color: rgb(34, 34, 34);
+    display: block;
+    font-family: arial, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    height: 16px;
+    text-align: center;
+    top: 8px;
+    /* width: 350px; */
+    z-index: 990;
+}
+
+.messagebox .baixandoInner {
+    padding: 10px;
+}
+
+#overlay {
+    background: #000;
+    opacity: 0.5;
+    /* visibility: hidden; */
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width:100%;
+    height:100%;
+    text-align:center;
+    z-index: 989;
+}

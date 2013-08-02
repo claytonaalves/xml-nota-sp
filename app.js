@@ -1,15 +1,10 @@
-var express = require('express'),
-    app = express(),
-    moment = require('./moment.js'),
-    baixarNotas = require('./baixanotas.js').baixar;
-    mysql = require('mysql');
-
-var connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'admmysql',
-    password: '1234',
-    database: 'vigo'
-});
+// TODO: testar no centos
+var express = require('express');
+var moment = require('./moment.js');
+var mysql = require('mysql');
+var baixarNotas = require('./baixanotas.js').baixar;
+var app = express();
+var connection = mysql.createConnection('mysql://admmysql:1234@localhost/vigo');
 
 connection.connect();
 
@@ -20,10 +15,20 @@ app.use('/css', express.static(__dirname + '/css'));
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/img', express.static(__dirname + '/img'));
 
+// TODO: implementar autenticação
+app.use('/', express.basicAuth(function(user, password) {
+    return (user==='clayton' & password==='4321');
+}));
+
+// TODO: gerar com um nome variável
+app.get('/xml/:arquivo', function (req, res) {
+    //res.download(req.params.arquivo, 'teste.xml');
+    res.download('julho.xml', 'teste.xml');
+});
+
 app.get('/', function (req, res) {
     res.sendfile('views/index.html');
 });
-
 
 app.get('/notas', function (req, res) {
     var data1, data2, sql, q = req.query;
@@ -38,16 +43,9 @@ app.get('/notas', function (req, res) {
           "nf.valor_servicos as valor " +
           "FROM nf " +
           "LEFT JOIN usuarios_unicos us on (nf.nome=us.nome AND nf.cpfcnpj=us.cpfcgc) " +
-          "WHERE dt_emissao BETWEEN '" + data1 + "' AND '" + data2 + "' "
-          // "LIMIT 25 "
-
-    //console.log(req.headers);
-
-   //res.setHeader('Content-Type', 'text/plain');
-   //res.setHeader('Content-Length', body.length);
+          "WHERE dt_emissao BETWEEN '" + data1 + "' AND '" + data2 + "' ";
 
     connection.query(sql, function (err, rows, fields) {
-        console.log('-->', rows.length);
         if (err) throw err;
         res.send(rows);
         //connection.end();
@@ -60,11 +58,8 @@ app.get('/notas.xml', function(req, res)  {
     data1 = moment(q.dataInicial, "DD/MM/YYYY").format("YYYY-MM-DD");
     data2 = moment(q.dataFinal, "DD/MM/YYYY").format("YYYY-MM-DD");
 
-    // set timeout as high as possible
     req.socket.setTimeout(Infinity);
  
-    // send headers for event-stream connection
-    // see spec for more information
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -74,11 +69,17 @@ app.get('/notas.xml', function(req, res)  {
  
     baixarNotas(data1, data2, function (linha) {
         var d = new Date();
-        //console.log('--> ', linha);
+        console.log('--> ', linha);
         res.write('id: ' + d.getMilliseconds() + '\n');
-        res.write('data:' + linha +   '\n\n'); // Note the extra newline
-    })
+        res.write('data:' + linha +   '\n\n');
+    }, function () {
+        var d = new Date();
+        console.log('--> Enviando evento END!');
+        res.write('id: ' + d.getMilliseconds() + '\n');
+        res.write('event: end\n');
+        res.write('data: xxx1.xml\n\n');
+    });
 });
 
-app.listen(8000);
+app.listen(8000, '10.1.1.42');
 
