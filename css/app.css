@@ -1,3 +1,7 @@
+body {
+    cursor: default;
+}
+
 .content {
     margin: 0 auto;
     width: 90%;

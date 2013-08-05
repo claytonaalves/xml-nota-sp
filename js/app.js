@@ -47,7 +47,7 @@ app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope) {
 
     $scope.baixaXML = function () {
         $rootScope.baixando = true;
-        var sse = new EventSource('notas.xml?dataInicial='+$scope.dataInicial+'&dataFinal='+$scope.dataFinal);
+        var sse = new EventSource('xml/gerar?dataInicial='+$scope.dataInicial+'&dataFinal='+$scope.dataFinal);
 
         sse.addEventListener('message', function(msg) {
             if (!msg) {
@@ -65,7 +65,7 @@ app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope) {
             sse.close();
             // iniciar download do arquivo aqui
             $scope.$apply(function() {
-                $scope.notafiscal = 'xml/'+msg.data;
+                $scope.notafiscal = 'xml/baixar/'+msg.data;
             });
         });
     }
@@ -85,3 +85,10 @@ app.controller('BaixandoCtrl', function ($scope, $rootScope) {
     });
 });
 
+app.directive('focus', function() {
+    return {
+        link: function(scope, element, attrs) {
+            element[0].focus();
+        }
+    }
+});

@@ -15,20 +15,21 @@ app.use('/css', express.static(__dirname + '/css'));
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/img', express.static(__dirname + '/img'));
 
-// TODO: implementar autenticação
-app.use('/', express.basicAuth(function(user, password) {
-    return (user==='clayton' & password==='4321');
-}));
 
-// TODO: gerar com um nome variável
-app.get('/xml/:arquivo', function (req, res) {
-    //res.download(req.params.arquivo, 'teste.xml');
-    res.download('julho.xml', 'teste.xml');
+var auth = express.basicAuth(function(user, password, fn) {
+    // console.log('--> Checking credentials');
+    connection.query('select login, senha from operadores where login=? and senha=?', [user, password], function(err, rows, fields) {
+        var result = !(rows.length===0);
+        // console.log('---> Credentials result', result);
+        fn(null, result);
+    });
 });
 
-app.get('/', function (req, res) {
+
+app.get('/', auth, function (req, res) {
     res.sendfile('views/index.html');
 });
+
 
 app.get('/notas', function (req, res) {
     var data1, data2, sql, q = req.query;
@@ -52,7 +53,8 @@ app.get('/notas', function (req, res) {
     })
 });
 
-app.get('/notas.xml', function(req, res)  {
+
+app.get('/xml/gerar', function(req, res)  {
     var data1, data2, q = req.query;
 
     data1 = moment(q.dataInicial, "DD/MM/YYYY").format("YYYY-MM-DD");
@@ -69,17 +71,24 @@ app.get('/notas.xml', function(req, res)  {
  
     baixarNotas(data1, data2, function (linha) {
         var d = new Date();
-        console.log('--> ', linha);
+        // console.log('--> ', linha);
         res.write('id: ' + d.getMilliseconds() + '\n');
         res.write('data:' + linha +   '\n\n');
-    }, function () {
+    }, function (filename) {
         var d = new Date();
-        console.log('--> Enviando evento END!');
+        // console.log('--> Enviando evento END!');
         res.write('id: ' + d.getMilliseconds() + '\n');
         res.write('event: end\n');
-        res.write('data: xxx1.xml\n\n');
+        res.write('data: ' + filename + '.xml\n\n');
     });
 });
 
-app.listen(8000, '10.1.1.42');
+
+app.get('/xml/baixar/:arquivo', function (req, res) {
+    res.download(req.params.arquivo);
+});
+
+
+//app.listen(8000, '10.1.1.42');
+app.listen(8000);
 

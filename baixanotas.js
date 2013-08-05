@@ -1,18 +1,18 @@
 var spawn = require('child_process').spawn;
 var readline = require('readline');
 
-// TODO: Gerar o nome do mês automaticamente
-
-var meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-
 /**
- * Description
+ * Chama o programa que gera o XML com as notas.
  *
- * @param {Date} dataInicial description
+ * @param {String} dataInicial
+ * @param {String} dataFinal
+ * @param {Function} callback
+ * @param {Function} endCallback
  *
  */
 exports.baixar = function (dataInicial, dataFinal, callback, endCallback) {
-    var child = spawn('./geraxml.py', ['julho', dataInicial, dataFinal]); // TODO: falta corrigir o mês que está fixo
+    var filename = (new Date()).getTime();
+    var child = spawn('./geraxml.py', [filename, dataInicial, dataFinal]);
 
     var rd = readline.createInterface({
         input: child.stdout,
@@ -21,14 +21,9 @@ exports.baixar = function (dataInicial, dataFinal, callback, endCallback) {
     });
 
     // Each line received from the process is sent to the callback
-    rd.on('line', function(line) {
-        callback(line);
-    });
-
+    rd.on('line', callback);
     rd.on('close', function() {
-        console.log('--> Finalizando processo!');
-        // TODO: enviar o nome do mês por aqui
-        endCallback();
+        endCallback(filename);
     });
 }
 
@@ -37,6 +32,7 @@ exports.baixar = function (dataInicial, dataFinal, callback, endCallback) {
  *
  */
 exports.baixarMock = function (dataInicial, dataFinal, callback, endCallback) {
+    var filename = (new Date()).getTime();
     var contador = 0;
     var intID;
     var lista = ['item1', 'item2', 'item3', 'item4', 'item5'];
