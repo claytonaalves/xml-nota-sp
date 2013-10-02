@@ -2,7 +2,7 @@
 #coding: utf8
 import MySQLdb
 import re
-from xml.dom.minidom import Document
+from lxml import etree
 import sys
 
 mes    = sys.argv[1]
@@ -12,11 +12,6 @@ fim    = sys.argv[3]
 conn = MySQLdb.connect("localhost", "admmysql", "1234", "vigo")
 qry = conn.cursor()
 qry2 = conn.cursor()
-
-doc = Document()
-
-importacao = doc.createElement("importacao")
-doc.appendChild(importacao)
 
 # create view usuarios_unicos as select * from usuarios group by nome, cpfcgc order by situacao;
 qry.execute("""\
@@ -43,180 +38,142 @@ WHERE dt_emissao BETWEEN %s AND %s
 ORDER BY nf.nome
 """, (inicio, fim))
 
+root = etree.Element("importacao")
+
 for nf in qry:
     print nf[0], nf[2].decode('latin1').encode('utf8')
 
-    nota = doc.createElement("nota")
+    nota = etree.SubElement(root, "nota")
 
-    rps_numero = doc.createElement("rps_numero")
-    rps_numero.appendChild(doc.createTextNode(str(nf[0])))
-    nota.appendChild(rps_numero)
+    node      = etree.SubElement(nota, "rps_numero")
+    node.text = str(nf[0])
 
-    rps_data = doc.createElement("rps_data")
-    rps_data.appendChild(doc.createTextNode(str(nf[1])))
-    nota.appendChild(rps_data)
+    node      = etree.SubElement(nota, "rps_data")
+    node.text = str(nf[1])
 
-    tomador_nome = doc.createElement("tomador_nome")
-    tomador_nome.appendChild(doc.createTextNode(nf[2].decode('latin1')))
-    nota.appendChild(tomador_nome)
+    node      = etree.SubElement(nota, "tomador_nome")
+    node.text = nf[2].decode('latin1')
 
-    tomador_cnpjcpf = doc.createElement("tomador_cnpjcpf")
-    tomador_cnpjcpf.appendChild(doc.createTextNode(nf[3].decode('latin1')))
-    nota.appendChild(tomador_cnpjcpf)
+    node      = etree.SubElement(nota, "tomador_cnpjcpf")
+    node.text = nf[3].decode('latin1')
 
-    tomador_inscrmunicipal = doc.createElement("tomador_inscrmunicipal")
-    inscrmunicipal = nf[4].decode('latin1').strip()
-    tomador_inscrmunicipal.appendChild(doc.createTextNode(inscrmunicipal))
-    nota.appendChild(tomador_inscrmunicipal)
+    node      = etree.SubElement(nota, "tomador_inscrmunicipal")
+    node.text = nf[4].decode('latin1').strip()
 
-    tomador_inscrestadual = doc.createElement("tomador_inscrestadual")
-    inscest = nf[15].decode('latin1')
-    tomador_inscrestadual.appendChild(doc.createTextNode(inscest))
-    nota.appendChild(tomador_inscrestadual)
+    node = etree.SubElement(nota, "tomador_inscrestadual")
+    node.text = nf[15].decode('latin1')
 
     logradouro = re.sub(',.+$', '', nf[5].decode('latin1'))
     numero = re.sub(u'.+,\s*[Nn]*[º°]*\s*', '', nf[5].decode('latin1'))
     numero = re.sub(u'[^\d]', '', nf[5].decode('latin1'))
 
-    tomador_logradouro = doc.createElement("tomador_logradouro")
-    tomador_logradouro.appendChild(doc.createTextNode(logradouro))
-    nota.appendChild(tomador_logradouro)
+    node = etree.SubElement(nota, "tomador_logradouro")
+    node.text = logradouro
 
-    tomador_numero = doc.createElement("tomador_numero")
-    tomador_numero.appendChild(doc.createTextNode(numero))
-    nota.appendChild(tomador_numero)
+    node = etree.SubElement(nota, "tomador_numero")
+    node.text = numero
 
-    tomador_complemento = doc.createElement("tomador_complemento")
-    tomador_complemento.appendChild(doc.createTextNode(nf[6].decode('latin1')))
-    nota.appendChild(tomador_complemento)
+    node = etree.SubElement(nota, "tomador_complemento")
+    node.text = nf[6].decode('latin1')
 
-    tomador_bairro = doc.createElement("tomador_bairro")
-    tomador_bairro.appendChild(doc.createTextNode(nf[7].decode('latin1')))
-    nota.appendChild(tomador_bairro)
+    node = etree.SubElement(nota, "tomador_bairro")
+    node.text = nf[7].decode('latin1')
 
-    tomador_cep = doc.createElement("tomador_cep")
-    tomador_cep.appendChild(doc.createTextNode(nf[8].decode('latin1')))
-    nota.appendChild(tomador_cep)
+    tomador_cep = etree.SubElement(nota, "tomador_cep")
+    tomador_cep.text = nf[8].decode('latin1')
 
-    tomador_municipio = doc.createElement("tomador_municipio")
-    tomador_municipio.appendChild(doc.createTextNode(nf[9].decode('latin1')))
-    nota.appendChild(tomador_municipio)
+    tomador_municipio = etree.SubElement(nota, "tomador_municipio")
+    tomador_municipio.text = nf[9].decode('latin1')
 
-    tomador_uf = doc.createElement("tomador_uf")
-    tomador_uf.appendChild(doc.createTextNode(nf[10].decode('latin1')))
-    nota.appendChild(tomador_uf)
+    tomador_uf = etree.SubElement(nota, "tomador_uf")
+    tomador_uf.text = nf[10].decode('latin1')
 
-    tomador_email = doc.createElement("tomador_email")
-    email = nf[11].decode('latin1')
-    tomador_email.appendChild(doc.createTextNode(email))
-    nota.appendChild(tomador_email)
+    tomador_email = etree.SubElement(nota, "tomador_email")
+    tomador_email.text = nf[11].decode('latin1')
 
-    valortotal = doc.createElement("valortotal")
-    valortotal.appendChild(doc.createTextNode('%.2f' % nf[13]))
-    nota.appendChild(valortotal)
+    valortotal = etree.SubElement(nota, "valortotal")
+    valortotal.text = '%.2f' % nf[13]
 
-    deducoes = doc.createElement("deducoes")
-    deducoes.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(deducoes)
+    deducoes = etree.SubElement(nota, "deducoes")
+    deducoes.text = '0.00'
 
-    acrescimo = doc.createElement("acrescimo")
-    acrescimo.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(acrescimo)
+    acrescimo = etree.SubElement(nota, "acrescimo")
+    acrescimo.text = '0.00'
 
-    basecalculo = doc.createElement("basecalculo")
-    basecalculo.appendChild(doc.createTextNode('%.2f' % nf[13]))
-    nota.appendChild(basecalculo)
+    basecalculo = etree.SubElement(nota, "basecalculo")
+    basecalculo.text = '%.2f' % nf[13]
 
-    aliqpercentual = doc.createElement("aliqpercentual")
-    aliqpercentual.appendChild(doc.createTextNode('2.00'))
-    nota.appendChild(aliqpercentual)
+    aliqpercentual = etree.SubElement(nota, "aliqpercentual")
+    aliqpercentual.text = '2.00'
 
-    valoriss = doc.createElement("valoriss")
-    valoriss.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(valoriss)
+    valoriss = etree.SubElement(nota, "valoriss")
+    valoriss.text = '0.00'
 
-    issretido = doc.createElement("issretido")
-    issretido.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(issretido)
+    issretido = etree.SubElement(nota, "issretido")
+    issretido.text = '0.00'
 
-    cofins = doc.createElement("cofins")
-    cofins.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(cofins)
+    cofins = etree.SubElement(nota, "cofins")
+    cofins.text = '0.00'
 
-    irrf = doc.createElement("irrf")
-    irrf.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(irrf)
+    irrf = etree.SubElement(nota, "irrf")
+    irrf.text = '0.00'
 
-    contribuicaosocial = doc.createElement("contribuicaosocial")
-    contribuicaosocial.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(contribuicaosocial)
+    contribuicaosocial = etree.SubElement(nota, "contribuicaosocial")
+    contribuicaosocial.text = '0.00'
 
-    pispasep = doc.createElement("pispasep")
-    pispasep.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(pispasep)
+    pispasep = etree.SubElement(nota, "pispasep")
+    pispasep.text = '0.00'
 
-    inss = doc.createElement("inss")
-    inss.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(inss)
+    inss = etree.SubElement(nota, "inss")
+    inss.text = '0.00'
 
-    totalretencoes = doc.createElement("totalretencoes")
-    totalretencoes.appendChild(doc.createTextNode('0.00'))
-    nota.appendChild(totalretencoes)
+    totalretencoes = etree.SubElement(nota, "totalretencoes")
+    totalretencoes.text = '0.00'
 
-    estado = doc.createElement("estado")
-    estado.appendChild(doc.createTextNode('N'))
-    nota.appendChild(estado)
+    estado = etree.SubElement(nota, "estado")
+    estado.text = 'N'
 
-    discriminacao = doc.createElement("discriminacao")
+    discriminacao = etree.SubElement(nota, "discriminacao")
     #discriminacao.appendChild(doc.createTextNode(nf[12].decode('latin1')))
-    discriminacao.appendChild(doc.createTextNode('PROVEDOR DE ACESSO A INTERNET'))
-    nota.appendChild(discriminacao)
+    discriminacao.text = 'PROVEDOR DE ACESSO A INTERNET'
 
-    observacoes = doc.createElement("observacoes")
-    observacoes.appendChild(doc.createTextNode(""))
-    nota.appendChild(observacoes)
+    observacoes = etree.SubElement(nota, "observacoes")
+    observacoes.text = ""
 
-    motivocancelamento = doc.createElement("motivocancelamento")
-    motivocancelamento.appendChild(doc.createTextNode(''))
-    nota.appendChild(motivocancelamento)
+    motivocancelamento = etree.SubElement(nota, "motivocancelamento")
+    motivocancelamento.text = ''
 
     qry2.execute('select * from nf_servicos where numero=%s', nf[0])
-    servicos = doc.createElement("servicos")
+    servicos = etree.SubElement(nota, "servicos")
     for nfs in qry2:
-        servico = doc.createElement("servico")
+        servico = etree.SubElement(servicos, "servico")
 
-        codigo = doc.createElement("codigo")
-        codigo.appendChild(doc.createTextNode('1.09'))
-        servico.appendChild(codigo)
+        codigo = etree.SubElement(servico, "codigo")
+        codigo.text = '1.09'
 
-        basecalculo = doc.createElement("basecalculo")
-        basecalculo.appendChild(doc.createTextNode('%.2f' % nf[13]))
-        servico.appendChild(basecalculo)
+        basecalculo = etree.SubElement(servico, "basecalculo")
+        basecalculo.text = '%.2f' % nf[13]
 
-        valoriss = doc.createElement("valoriss")
-        valoriss.appendChild(doc.createTextNode('0.00'))
-        servico.appendChild(valoriss)
+        valoriss = etree.SubElement(servico, "valoriss")
+        valoriss.text = '0.00'
 
-        issretido = doc.createElement("issretido")
-        issretido.appendChild(doc.createTextNode("%.2f" % nf[14]))
-        servico.appendChild(issretido)
+        issretido = etree.SubElement(servico, "issretido")
+        issretido.text = "%.2f" % nf[14]
 
-        discriminacao = doc.createElement("discriminacao")
-        discriminacao.appendChild(doc.createTextNode(nfs[1].decode("latin1")))
-        servico.appendChild(discriminacao)
-
-        servicos.appendChild(servico)
-
-    nota.appendChild(servicos)
-
-    importacao.appendChild(nota)
+        discriminacao = etree.SubElement(servico, "discriminacao")
+        discriminacao.text = nfs[1].decode("latin1")
 
 #xml = doc.toprettyxml(
 #        indent="    ", 
 #        newl='\r\n',
 #        )
 
-xml = doc.toprettyxml(encoding='iso-8859-1')
+xml = etree.tostring(root, 
+                     encoding='iso-8859-1',
+                     xml_declaration=True,
+                     pretty_print=True)
+
+        #encoding='iso-8859-1')
 
 f = open('%s.xml' % mes,'wb')
 f.write(xml)
