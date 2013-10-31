@@ -1,12 +1,8 @@
-// TODO: testar no centos
 var express = require('express');
 var moment = require('./moment.js');
-var mysql = require('mysql');
 var baixarNotas = require('./baixanotas.js').baixar;
+var database = require('./database.js');
 var app = express();
-var connection = mysql.createConnection('mysql://admmysql:1234@localhost/vigo');
-
-connection.connect();
 
 app.use(express.logger());
 app.use(express.favicon(__dirname + '/img/favicon.ico'));
@@ -15,16 +11,7 @@ app.use('/css', express.static(__dirname + '/css'));
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/img', express.static(__dirname + '/img'));
 
-
-var auth = express.basicAuth(function(user, password, fn) {
-    // console.log('--> Checking credentials');
-    connection.query('select login, senha from operadores where login=? and senha=?', [user, password], function(err, rows, fields) {
-        var result = !(rows.length===0);
-        // console.log('---> Credentials result', result);
-        fn(null, result);
-    });
-});
-
+var auth = express.basicAuth(database.autentica);
 
 app.get('/', auth, function (req, res) {
     res.sendfile('views/index.html');
@@ -32,31 +19,37 @@ app.get('/', auth, function (req, res) {
 
 
 app.get('/notas', function (req, res) {
-    var data1, data2, sql, q = req.query;
+    var data1, data2, q = req.query;
 
     data1 = moment(q.dataInicial, "DD/MM/YYYY").format("YYYY-MM-DD");
     data2 = moment(q.dataFinal, "DD/MM/YYYY").format("YYYY-MM-DD");
 
-    sql = "SELECT DISTINCT " +
-          "nf.numero, " +
-          "dt_emissao as emissao, " +
-          "nf.nome, " +
-          "nf.valor_servicos as valor " +
-          "FROM nf " +
-          "LEFT JOIN usuarios_unicos us on (nf.nome=us.nome AND nf.cpfcnpj=us.cpfcgc) " +
-          "WHERE dt_emissao BETWEEN '" + data1 + "' AND '" + data2 + "' ";
-
-    connection.query(sql, function (err, rows, fields) {
+    database.notas(data1, data2, q.empresa, q.servico, function (err, rows, fields) {
         if (err) throw err;
         res.send(rows);
-        //connection.end();
-    })
+    });
+});
+
+
+app.get('/empresas', function (req, res) {
+    database.empresas(function(rows) {
+        res.send(rows);
+    });
+});
+
+
+app.get('/servicos', function (req, res) {
+    database.servicos(function(rows) {
+        res.send(rows);
+    });
 });
 
 
 app.get('/xml/gerar', function(req, res)  {
-    var data1, data2, q = req.query;
+    var data1, data2, empresa, servico, q = req.query;
 
+    empresa = unescape(q.empresa);
+    servico = unescape(q.servico);
     data1 = moment(q.dataInicial, "DD/MM/YYYY").format("YYYY-MM-DD");
     data2 = moment(q.dataFinal, "DD/MM/YYYY").format("YYYY-MM-DD");
 
@@ -69,7 +62,7 @@ app.get('/xml/gerar', function(req, res)  {
     });
     res.write('\n');
  
-    baixarNotas(data1, data2, function (linha) {
+    baixarNotas(data1, data2, empresa, servico, function (linha) {
         var d = new Date();
         // console.log('--> ', linha);
         res.write('id: ' + d.getMilliseconds() + '\n');

@@ -6,12 +6,16 @@ var readline = require('readline');
  *
  * @param {String} dataInicial
  * @param {String} dataFinal
+ * @param {String} empresa
+ * @param {String} servico
  * @param {Function} callback
  * @param {Function} endCallback
  *
  */
-exports.baixar = function (dataInicial, dataFinal, callback, endCallback) {
+exports.baixar = function (dataInicial, dataFinal, empresa, servico, callback, endCallback) {
     var filename = (new Date()).getTime();
+    console.log(empresa);
+    console.log(servico);
     var child = spawn('./geraxml.py', [filename, dataInicial, dataFinal]);
 
     var rd = readline.createInterface({

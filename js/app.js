@@ -14,10 +14,10 @@ app.directive('dateformat', function () {
 });
 
 app.factory('notas', ['$http', '$q', function ($http, $q) {
-    var carregaNotas = function(inicio, fim) {
+    var carregaNotas = function(inicio, fim, empresa, servico) {
         var deferred = $q.defer();
         
-        $http({url: '/notas', method: 'get', params: {dataInicial: inicio, dataFinal: fim} })
+        $http({url: '/notas', method: 'get', params: {dataInicial: inicio, dataFinal: fim, empresa: empresa, servico: servico} })
             .success(function (data, rstatus, headers, config) {
                 deferred.resolve(data);
             });
@@ -28,30 +28,50 @@ app.factory('notas', ['$http', '$q', function ($http, $q) {
     }
 }]);
 
-app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope) {
+app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope, $timeout) {
     $scope.loading = false;
     $scope.dataInicial = DataValida('01');
     $scope.dataFinal = DataValida('31');
     $scope.notas = [];
 
+    $http({url: '/empresas', method: 'get'})
+        .success(function (data, rstatus, headers, config) {
+            $scope.empresas = data;
+            $scope.empresa = data[0];
+            $scope.baixaNotas();
+        });
+
+    $http({url: '/servicos', method: 'get'})
+        .success(function (data, rstatus, headers, config) {
+            $scope.servicos = data;
+            $scope.servico = data[0];
+            $scope.baixaNotas();
+        });
+
     $scope.baixaNotas = function() {
-        $scope.loading = true;
-        $scope.notas = [];
-        notas.carregar($scope.dataInicial, $scope.dataFinal)
-            .then(function (notas) {
-                $scope.notas = notas;    
-                $rootScope.totalNotas = notas.length;
-                $scope.loading = false;
-            });
+        // Só baixa as notas quando as empresas e serviços tiverem sido carregados
+        if ($scope.empresas && $scope.servicos) {
+            $scope.loading = true;
+            $scope.notas = [];
+            $scope.empresa;
+            notas.carregar($scope.dataInicial, $scope.dataFinal, $scope.empresa.fantasia, $scope.servico.natureza)
+                .then(function (notas) {
+                    $scope.notas = notas;    
+                    $rootScope.totalNotas = notas.length;
+                    $scope.loading = false;
+                });
+        }
     };
 
     $scope.baixaXML = function () {
         $rootScope.baixando = true;
-        var sse = new EventSource('xml/gerar?dataInicial='+$scope.dataInicial+'&dataFinal='+$scope.dataFinal);
+        var sse = new EventSource('xml/gerar?dataInicial='+$scope.dataInicial+
+                                  '&dataFinal='+$scope.dataFinal+
+                                  '&empresa='+escape($scope.empresa.fantasia)+
+                                  '&servico='+escape($scope.servico.natureza));
 
         sse.addEventListener('message', function(msg) {
             if (!msg) {
-                console.log
                 sse.close();
             }
             else {
@@ -63,7 +83,7 @@ app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope) {
             //console.log('arquivo gerado!', msg.data);
             $rootScope.baixando = false;
             sse.close();
-            // iniciar download do arquivo aqui
+            // Seta o src do iframe para iniciar o download do arquivo xml
             $scope.$apply(function() {
                 $scope.notafiscal = 'xml/baixar/'+msg.data;
             });

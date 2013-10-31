@@ -8,16 +8,27 @@
   </head>
 <body ng-app="appNota">
 
-        <div class="content" ng-controller="NotasCtrl" ng-init="baixaNotas()">
+        <div class="content" ng-controller="NotasCtrl">
             <div id="loading" class="loading" ng-show="loading">
                 Carregando...
                 <div>
                     <img src="img/loading_bar.gif" />
                 </div>
             </div>
+            <a id="configurar" href="#">Configurar</a>
             <form method="POST" class="myinline">
                 <fieldset>
                     <legend>Gerar XML das notas fiscais</legend>
+                    <div class="form-horizontal">
+                        <label for="empresa">Empresa</label>
+                        <select name="empresa" 
+                                ng-model="empresa" 
+                                ng-options="empresa as empresa.fantasia for empresa in empresas"></select>
+                    </div>
+                    <div class="form-horizontal">
+                        <label for="servicos">Serviços</label>
+                        <select name="servicos" ng-model="servico" ng-options="servico as servico.natureza for servico in servicos"></select>
+                    </div>
                     <div class="form-horizontal">
                         <label for="datainicial">Data Inicial</label>
                         <input type="text" dateformat ng-model="dataInicial" name="datainicial"> 

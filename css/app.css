@@ -246,3 +246,9 @@ body::-webkit-scrollbar-corner {
 .selectedItems{
     /* float: left;  */
 }
+
+#configurar {
+    position: absolute;
+    top: 20px;
+    right: 62px;
+}
