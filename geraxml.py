@@ -1,5 +1,6 @@
 #!/usr/bin/python -u
 #coding: utf8
+import os
 import MySQLdb
 import re
 from lxml import etree
@@ -8,13 +9,22 @@ import sys
 mes    = sys.argv[1]
 inicio = sys.argv[2]
 fim    = sys.argv[3]
+empresa = os.environ['NOME_EMPRESA'].decode('utf8')
+servico = os.environ['NOME_SERVICO'].decode('utf8')
 
-conn = MySQLdb.connect("localhost", "admmysql", "1234", "vigo")
+#f = open('test.log', 'w')
+#f.write(empresa)
+#f.write('\n')
+#f.write(servico)
+#f.close()
+
+#conn = MySQLdb.connect("localhost", "admmysql", "1234", "vigo")
+conn = MySQLdb.connect("localhost", "root", "", "vigo")
 qry = conn.cursor()
 qry2 = conn.cursor()
 
 # create view usuarios_unicos as select * from usuarios group by nome, cpfcgc order by situacao;
-qry.execute("""\
+qry.execute(u"""\
 SELECT DISTINCT
     nf.numero as numero_nota,
     dt_emissao as rps_data,
@@ -34,9 +44,13 @@ SELECT DISTINCT
     nf.rgie
 FROM nf
 LEFT JOIN usuarios_unicos us on (nf.nome=us.nome AND nf.cpfcnpj=us.cpfcgc)
-WHERE dt_emissao BETWEEN %s AND %s
+LEFT JOIN empresas emp on (us.idempresa=emp.id)
+WHERE 
+    (dt_emissao BETWEEN %s AND %s) AND
+    (emp.fantasia=%s) AND
+    (nf.natureza=%s)
 ORDER BY nf.nome
-""", (inicio, fim))
+""", (inicio, fim, empresa, servico))
 
 root = etree.Element("importacao")
 
@@ -163,17 +177,10 @@ for nf in qry:
         discriminacao = etree.SubElement(servico, "discriminacao")
         discriminacao.text = nfs[1].decode("latin1")
 
-#xml = doc.toprettyxml(
-#        indent="    ", 
-#        newl='\r\n',
-#        )
-
 xml = etree.tostring(root, 
                      encoding='iso-8859-1',
                      xml_declaration=True,
                      pretty_print=True)
-
-        #encoding='iso-8859-1')
 
 f = open('%s.xml' % mes,'wb')
 f.write(xml)
