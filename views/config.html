@@ -1,0 +1,41 @@
+<div class="content">
+    <h1>Configurações</h1>
+
+    <form method="POST" class="myinline">
+        <div class="form-horizontal" style="display: block;">
+            <label for="discriminacao">Discriminação</label>
+            <input type="text" name="discriminacao" value="" style="width: 429px;">
+        </div>
+
+        <div class="form-horizontal">
+            <label for="aliqinss">Alíquota INSS</label>
+            <input type="text" name="aliqinss" value="">
+
+            <label for="aliqirrf">Alíquota IRFF</label>
+            <input type="text" name="aliqirrf" value="">
+
+            <label for="deducaoirrf">Dedução IRFF</label>
+            <input type="text" name="deducaoirrf" value="">
+        </div>
+
+        <div class="form-horizontal">
+            <label for="valordeducoes">Valor Deduções</label>
+            <input type="text" name="valordeducoes" value="">
+
+            <label for="estado">Estado</label>
+            <input type="text" name="estado" value="">
+
+            <label for="codservico">Código do Serviço</label>
+            <input type="text" name="codservico" value="">
+        </div>
+
+        <label for="observacao">Observação</label>
+        <textarea name="observacao" rows="3" cols="40" style="width: 429px;"></textarea>
+
+        <div id="buttonbar">
+            <a class="btn" ng-click="Enviar()">Salvar</a>
+            <a class="btn" href="#/">Cancelar</a>
+        </div>
+
+    </form>
+</div>

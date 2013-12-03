@@ -8,63 +8,7 @@
   </head>
 <body ng-app="appNota">
 
-        <div class="content" ng-controller="NotasCtrl">
-            <div id="loading" class="loading" ng-show="loading">
-                Carregando...
-                <div>
-                    <img src="img/loading_bar.gif" />
-                </div>
-            </div>
-            <a id="configurar" href="#">Configurar</a>
-            <form method="POST" class="myinline">
-                <fieldset>
-                    <legend>Gerar XML das notas fiscais</legend>
-                    <div class="form-horizontal">
-                        <label for="empresa">Empresa</label>
-                        <select name="empresa" 
-                                ng-model="empresa" 
-                                ng-options="empresa as empresa.fantasia for empresa in empresas"></select>
-                    </div>
-                    <div class="form-horizontal">
-                        <label for="servicos">Serviços</label>
-                        <select name="servicos" ng-model="servico" ng-options="servico as servico.natureza for servico in servicos"></select>
-                    </div>
-                    <div class="form-horizontal">
-                        <label for="datainicial">Data Inicial</label>
-                        <input type="text" dateformat ng-model="dataInicial" name="datainicial"> 
-                    </div>
-                    <div class="form-horizontal">
-                        <label for="datafinal">Data final</label>
-                        <input type="text" dateformat ng-model="dataFinal" name="datafinal"> 
-                        <button ng-click="baixaNotas(dataInicial, dataFinal)" ng-disabled="loading" class="btn btn-primary">Listar</button>
-                        <button ng-click="baixaXML()" ng-show="!loading && notas" class="btn">Baixar XML</button>
-                    </div>
-                </fieldset>
-            </form>
-
-            <div>
-                Total: {{notas.length}} notas
-            </div>
-
-            <table class="table table-condensed table-hover">
-                <tr>
-                    <th>Emissão</th>
-                    <th>Número</th>
-                    <th>Nome</th>
-                    <th>Valor</th>
-                </tr>
-                <tr ng-repeat="nota in notas">
-                    <td>{{nota.emissao|formatadata}}</td>
-                    <td>{{nota.numero}}</td>
-                    <td>{{nota.nome}}</td>
-                    <td>{{nota.valor|formatavalor}}</td>
-                </tr>
-            </table>
-
-            <iframe ng-src="{{notafiscal}}" id="hiddenDownload"></iframe>
-
-            <div id="overlay" ng-show="baixando">
-            </div>
+        <div class="content disable-select" ng-view>
         </div>
 
         <div ng-show="baixando" id="baixando" class="messagebox" ng-controller="BaixandoCtrl">
