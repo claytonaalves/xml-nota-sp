@@ -5,6 +5,32 @@ html {
 body {
     height: 100%;
     cursor: default;
+    font-size: 11px;
+}
+
+label, input, button, select, textarea {
+    font-size: 11px;
+}
+
+select {
+    height: 21px;
+    line-height: 30px;
+    width: 190px;
+}
+
+input[type="text"] {
+    height: 11px;
+    font-size: 11px;
+}
+
+.btn {
+    padding: 0;
+    line-height: 19px;
+    width: 85px;
+}
+
+.data {
+    width: 85px;
 }
 
 .content {
@@ -14,6 +40,10 @@ body {
 
 table {
     width: 100%;
+}
+
+.table td {
+    line-height: 16px;
 }
 
 form.myinline div {
@@ -251,4 +281,19 @@ body::-webkit-scrollbar-corner {
     position: absolute;
     top: 20px;
     right: 62px;
+}
+
+.disable-select {
+  -webkit-user-select: none;  
+  -moz-user-select: none;    
+  -ms-user-select: none;      
+  user-select: none;
+}
+
+h1 {
+    font-size: 24.5px;
+}
+
+#buttonbar {
+    display: block;
 }
