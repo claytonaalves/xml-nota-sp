@@ -7,6 +7,9 @@ app.filter('formatadata', function () {
 app.filter('formatavalor', function () {
     return function (valor) {
         var valores = valor.toString().split('.');
+        if (valores.length==1) {
+            valores[1] = '0';
+        }
         var centavos = (valores[1]+"0").substr(0, 2);
         return 'R$ ' + Array(valores[0], centavos).join(',');
     }
