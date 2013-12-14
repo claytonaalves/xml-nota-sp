@@ -1,5 +1,12 @@
 var app = angular.module("appNota", []);
 
+app.config(['$routeProvider', function($routeProvider) {
+    $routeProvider.
+        when('/', {templateUrl: 'views/notas.html', controller: 'NotasCtrl'}).
+        when('/config', {templateUrl: 'views/config.html', controller: 'ConfigCtrl'}).
+        otherwise({redirectTo: '/'});
+}]);
+
 app.directive('dateformat', function () {
     return {
         restrict: 'A',
@@ -103,6 +110,34 @@ app.controller('BaixandoCtrl', function ($scope, $rootScope) {
             contador += 1;
         })
     });
+});
+
+app.controller('ConfigCtrl', function ($scope, $http, $location) {
+    $http({url: '/config', method: 'get'})
+        .success(function (data, rstatus, headers, config) {
+            $scope.discriminacao = data.discriminacao;
+            $scope.inss = data.inss;
+            $scope.deducoes = data.deducoes;
+            $scope.irrf = data.irrf;
+            $scope.estado = data.estado;
+            $scope.observacoes = data.observacoes;
+        });
+
+    $scope.enviar = function() {
+        var configuracoes = {
+            discriminacao : $scope.discriminacao,
+            inss          : $scope.inss,
+            deducoes      : $scope.deducoes,
+            irrf          : $scope.irrf,
+            estado        : $scope.estado,
+            observacoes   : $scope.observacoes,
+        }
+        $http({url: '/config', method: 'post', data: configuracoes})
+            .success(function (data, rstatus, headers, config) {
+                $location.path('/');
+            });
+    }
+    
 });
 
 app.directive('focus', function() {
