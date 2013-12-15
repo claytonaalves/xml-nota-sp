@@ -116,21 +116,23 @@ app.controller('ConfigCtrl', function ($scope, $http, $location) {
     $http({url: '/config', method: 'get'})
         .success(function (data, rstatus, headers, config) {
             $scope.discriminacao = data.discriminacao;
-            $scope.inss = data.inss;
-            $scope.deducoes = data.deducoes;
-            $scope.irrf = data.irrf;
+            $scope.inss = data.inss.toFixed(2);
+            $scope.deducoes = data.deducoes.toFixed(2);
+            $scope.irrf = data.irrf.toFixed(2);
             $scope.estado = data.estado;
+            $scope.codigo = data.codigo;
             $scope.observacoes = data.observacoes;
         });
 
     $scope.enviar = function() {
         var configuracoes = {
             discriminacao : $scope.discriminacao,
-            inss          : $scope.inss,
-            deducoes      : $scope.deducoes,
-            irrf          : $scope.irrf,
+            inss          : parseFloat($scope.inss),
+            deducoes      : parseFloat($scope.deducoes),
+            irrf          : parseFloat($scope.irrf),
             estado        : $scope.estado,
             observacoes   : $scope.observacoes,
+            codigo        : $scope.codigo
         }
         $http({url: '/config', method: 'post', data: configuracoes})
             .success(function (data, rstatus, headers, config) {
