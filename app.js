@@ -2,8 +2,10 @@ var express = require('express');
 var moment = require('./moment.js');
 var baixarNotas = require('./baixanotas.js').baixar;
 var database = require('./database.js');
+var config = require('./config.js');
 var app = express();
 
+app.use(express.bodyParser());
 app.use(express.logger());
 app.use(express.favicon(__dirname + '/img/favicon.ico'));
 app.use('/static', express.static(__dirname + '/public'));
@@ -15,6 +17,10 @@ var auth = express.basicAuth(database.autentica);
 
 app.get('/', auth, function (req, res) {
     res.sendfile('views/index.html');
+});
+
+app.get('/views/:arquivo', function (req, res) {
+    res.sendfile('views/' + req.params.arquivo);
 });
 
 
@@ -45,6 +51,7 @@ app.get('/servicos', function (req, res) {
 });
 
 
+// Usado por um EventSource
 app.get('/xml/gerar', function(req, res)  {
     var data1, data2, empresa, servico, q = req.query;
 
@@ -64,12 +71,11 @@ app.get('/xml/gerar', function(req, res)  {
  
     baixarNotas(data1, data2, empresa, servico, function (linha) {
         var d = new Date();
-        // console.log('--> ', linha);
         res.write('id: ' + d.getMilliseconds() + '\n');
         res.write('data:' + linha +   '\n\n');
     }, function (filename) {
         var d = new Date();
-        // console.log('--> Enviando evento END!');
+        // Enviando evento END
         res.write('id: ' + d.getMilliseconds() + '\n');
         res.write('event: end\n');
         res.write('data: ' + filename + '.xml\n\n');
@@ -81,7 +87,14 @@ app.get('/xml/baixar/:arquivo', function (req, res) {
     res.download(req.params.arquivo);
 });
 
+app.get('/config', function (req, res) {
+    res.send(config.get());
+});
 
-//app.listen(8000, '10.1.1.42');
+app.post('/config', function (req, res) {
+    config.set(req.body);
+    res.send('ok');
+});
+
 app.listen(8000);
 
