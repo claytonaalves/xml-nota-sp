@@ -1,10 +1,14 @@
 #!/usr/bin/python -u
 #coding: utf8
+"""
+This script is responsible for generating the NFe XML file.
+"""
 import os
 import MySQLdb
 import re
 from lxml import etree
 import sys
+import json
 
 mes    = sys.argv[1]
 inicio = sys.argv[2]
@@ -12,14 +16,13 @@ fim    = sys.argv[3]
 empresa = os.environ['NOME_EMPRESA'].decode('utf8')
 servico = os.environ['NOME_SERVICO'].decode('utf8')
 
-#f = open('test.log', 'w')
-#f.write(empresa)
-#f.write('\n')
-#f.write(servico)
-#f.close()
+# Open config file
+f = open('config.json', 'r')
+config = json.load(f)
+f.close()
 
-#conn = MySQLdb.connect("localhost", "admmysql", "1234", "vigo")
-conn = MySQLdb.connect("localhost", "root", "", "vigo")
+conn = MySQLdb.connect("localhost", "admmysql", "1234", "vigo")
+#conn = MySQLdb.connect("localhost", "root", "", "vigo")
 qry = conn.cursor()
 qry2 = conn.cursor()
 
@@ -109,7 +112,7 @@ for nf in qry:
     valortotal.text = '%.2f' % nf[13]
 
     deducoes = etree.SubElement(nota, "deducoes")
-    deducoes.text = '0.00'
+    deducoes.text = "%.2f" % config['deducoes']
 
     acrescimo = etree.SubElement(nota, "acrescimo")
     acrescimo.text = '0.00'
@@ -130,7 +133,7 @@ for nf in qry:
     cofins.text = '0.00'
 
     irrf = etree.SubElement(nota, "irrf")
-    irrf.text = '0.00'
+    irrf.text = "%.2f" % config['irrf']
 
     contribuicaosocial = etree.SubElement(nota, "contribuicaosocial")
     contribuicaosocial.text = '0.00'
@@ -139,20 +142,20 @@ for nf in qry:
     pispasep.text = '0.00'
 
     inss = etree.SubElement(nota, "inss")
-    inss.text = '0.00'
+    inss.text = "%.2f" % config['inss']
 
     totalretencoes = etree.SubElement(nota, "totalretencoes")
     totalretencoes.text = '0.00'
 
     estado = etree.SubElement(nota, "estado")
-    estado.text = 'N'
+    estado.text = config['estado']
 
     discriminacao = etree.SubElement(nota, "discriminacao")
     #discriminacao.appendChild(doc.createTextNode(nf[12].decode('latin1')))
-    discriminacao.text = 'PROVEDOR DE ACESSO A INTERNET'
+    discriminacao.text = config['discriminacao']
 
     observacoes = etree.SubElement(nota, "observacoes")
-    observacoes.text = ""
+    observacoes.text = config['observacoes']
 
     motivocancelamento = etree.SubElement(nota, "motivocancelamento")
     motivocancelamento.text = ''
@@ -163,7 +166,8 @@ for nf in qry:
         servico = etree.SubElement(servicos, "servico")
 
         codigo = etree.SubElement(servico, "codigo")
-        codigo.text = '1.09'
+        #codigo.text = '1.09'
+        codigo.text = config['codigo']
 
         basecalculo = etree.SubElement(servico, "basecalculo")
         basecalculo.text = '%.2f' % nf[13]
