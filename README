@@ -30,7 +30,8 @@ Assim eu posso filtrar as notas que eu emiti que nao é de internet
 --------------------------------
 Dependências:
 
-  * lxml
+  * lxml (módulo python)
+  * forever (módulo nodejs)
 
 --------------------------------
 
@@ -56,7 +57,8 @@ Alterar usuário do processo:
     });
 
 
-Secondly, your server will need a way to listen for notices telling it to prepare for shutdown and respond when ready to shutdown. One way of doing this is to set up an HTTP server on a port only open to localhost, much as follows:
+Secondly, your server will need a way to listen for notices telling it to prepare for shutdown and 
+respond when ready to shutdown. One way of doing this is to set up an HTTP server on a port only open to localhost, much as follows:
 
     var server = express.createServer();
     server.listen(10080);
@@ -86,7 +88,9 @@ Secondly, your server will need a way to listen for notices telling it to prepar
     };
 
 
-Thirdly, you will need to include a script with your application that will trigger the shutdown preparation. A simple method like the one above could be triggered via curl, but you may include more security measures in its use, or otherwise prefer to use Node.js:
+Thirdly, you will need to include a script with your application that will trigger the 
+shutdown preparation. A simple method like the one above could be triggered via curl, 
+but you may include more security measures in its use, or otherwise prefer to use Node.js:
 
     #!/usr/bin/env node
      
@@ -116,7 +120,12 @@ Thirdly, you will need to include a script with your application that will trigg
 
 Set up an init.d Script for Forever
 
-It is easy enough to use Forever to manage a Node.js server as a service via an init.d script. The trick is the graceful shutdown, as forever.js simply kills processes when used in this way. The following script and setup instructions are good for a Red Hat, Fedora, or similar Linux distribution, though you will have to change the paths to suit your application and installation details. For example it assumes that your application is packaged with scripts in /scripts/start.js and /scripts/prepareForStop.js to start the server and prepare for shutdown respectively.
+It is easy enough to use Forever to manage a Node.js server as a service via an init.d script. 
+The trick is the graceful shutdown, as forever.js simply kills processes when used in this way. 
+The following script and setup instructions are good for a Red Hat, Fedora, or similar Linux 
+distribution, though you will have to change the paths to suit your application and installation details. 
+For example it assumes that your application is packaged with scripts in /scripts/start.js and /scripts/prepareForStop.js 
+to start the server and prepare for shutdown respectively.
 
 
     #!/bin/bash
