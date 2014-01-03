@@ -19,7 +19,8 @@ exports.notas = function(dataInicial, dataFinal, empresa, servico, callback) {
                "   nf.numero,                                                              " +
                "   dt_emissao as emissao,                                                  " +
                "   nf.nome,                                                                " +
-               "   nf.valor_servicos as valor                                              " +
+               "   nf.valor_servicos as valor,                                             " +
+               "   us.cpfcgc                                                               " +
                "FROM nf                                                                    " +
                "LEFT JOIN usuarios_unicos us on (nf.nome=us.nome AND nf.cpfcnpj=us.cpfcgc) " +
                "LEFT JOIN empresas emp ON nf.idempresa=emp.id                              " +

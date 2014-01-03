@@ -40,6 +40,7 @@ app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope, $timeout
     $scope.dataInicial = DataValida('01');
     $scope.dataFinal = DataValida('31');
     $scope.notas = [];
+    $scope.totalGeral = 0;
 
     $http({url: '/empresas', method: 'get'})
         .success(function (data, rstatus, headers, config) {
@@ -65,6 +66,11 @@ app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope, $timeout
                 .then(function (notas) {
                     $scope.notas = notas;    
                     $rootScope.totalNotas = notas.length;
+                    // obter o total geral das notas
+                    var total = 0;
+                    for (var i=0; i<notas.length; i++)
+                        total += notas[i].valor;
+                    $scope.totalGeral = total;
                     $scope.loading = false;
                 });
         }
