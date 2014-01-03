@@ -1,5 +1,6 @@
 var mysql = require('mysql');
 var connection = mysql.createConnection('mysql://admmysql:1234@localhost/vigo');
+//var connection = mysql.createConnection('mysql://root:@localhost/vigo');
 
 connection.connect();
 
