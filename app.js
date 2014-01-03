@@ -5,6 +5,11 @@ var database = require('./database.js');
 var config = require('./config.js');
 var app = express();
 
+var nodeUserGid = "node";
+var nodeUserUid = "node";
+
+process.chdir('/var/www/app');
+
 app.use(express.bodyParser());
 app.use(express.logger());
 app.use(express.favicon(__dirname + '/img/favicon.ico'));
@@ -96,5 +101,8 @@ app.post('/config', function (req, res) {
     res.send('ok');
 });
 
-app.listen(8000);
+app.listen(8000, function() {
+	process.setgid(nodeUserGid);
+	process.setuid(nodeUserUid);
+});
 

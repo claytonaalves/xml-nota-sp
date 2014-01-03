@@ -8,7 +8,11 @@ import MySQLdb
 import re
 from lxml import etree
 import sys
-import json
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 mes    = sys.argv[1]
 inicio = sys.argv[2]
@@ -81,7 +85,7 @@ for nf in qry:
     node.text = nf[15].decode('latin1')
 
     logradouro = re.sub(',.+$', '', nf[5].decode('latin1'))
-    numero = re.sub(u'.+,\s*[Nn]*[º°]*\s*', '', nf[5].decode('latin1'))
+    numero = re.sub(u'.+,\s*[Nn]*[º°]*\s*', '', nf[6].decode('latin1'))
     numero = re.sub(u'[^\d]', '', nf[5].decode('latin1'))
 
     node = etree.SubElement(nota, "tomador_logradouro")
