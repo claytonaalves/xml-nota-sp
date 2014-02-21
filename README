@@ -1,31 +1,8 @@
-Implementar:
-  * combobox para selecionar a empresa
-  * filtro por servico
+Este projeto foi desenvolvido para a empresa ValeSat.
 
-1. escolha da empresa
-2. filtragem por data e por servico
-3. informacoes fixas em condicao de alteracao
-
-Informações fixas
-
-    <discriminacao>
-    <observacao/>
-    <aliqinss/>
-    <aliqirrf/>
-    <deducaoirrf/>
-    <valordeducoes/>
-    <estado>
-    <codservico>                             
-
-Uso:
-  - Escolher a empresa VALESAT
-  - filtrar por servico (formatacao .. por exemplo.... que é diferente de internet)
-  - esse é codigo do serviço 1.07
-  - internet é 1.09
-
-Assim eu posso filtrar as notas que eu emiti que nao é de internet
-
-
+A função do aplicativo é listar e gerar (a partir de uma
+filtragem) um arquivo xml para exportação para a prefeitura
+de São Paulo.
 
 --------------------------------
 Dependências:
