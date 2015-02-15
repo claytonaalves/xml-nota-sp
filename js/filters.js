@@ -6,6 +6,9 @@ app.filter('formatadata', function () {
 
 app.filter('formatavalor', function () {
     return function (valor) {
+        if (valor===undefined) {
+            valor = 0;
+        }
         var valores = valor.toString().split('.');
         if (valores.length==1) {
             valores[1] = '0';
