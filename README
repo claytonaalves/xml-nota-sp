@@ -1,12 +1,12 @@
-Este projeto foi desenvolvido para a empresa ValeSat.
+Gerador de xml de notas fiscais de serviços de SP.
 
-A função do aplicativo é listar e gerar (a partir de uma
-filtragem) um arquivo xml para exportação para a prefeitura
-de São Paulo.
+Este aplicativo gera um arquivo XML com uma listagem de notas fiscais de serviços
+para exportação para a prefeitura de São Paulo.
 
 --------------------------------
 Dependências:
 
+  * Node v0.10.33 ou posterior (por causa do módulo crypt)
   * lxml (módulo python)
   * forever (módulo nodejs)
 

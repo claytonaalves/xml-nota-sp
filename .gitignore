@@ -2,3 +2,5 @@
 *.swp
 *.gz
 tmp/
+*.xml
+*.csv
