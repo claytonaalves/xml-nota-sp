@@ -1,89 +1,72 @@
-var app = angular.module("appNota", []);
+var app = angular.module("appNota", ['ngRoute']);
 
-app.config(['$routeProvider', function($routeProvider) {
+app.config(['$routeProvider', function ($routeProvider) {
     $routeProvider.
         when('/', {templateUrl: 'views/notas.html', controller: 'NotasCtrl'}).
         when('/config', {templateUrl: 'views/config.html', controller: 'ConfigCtrl'}).
         otherwise({redirectTo: '/'});
 }]);
 
-app.directive('dateformat', function () {
-    return {
-        restrict: 'A',
-        link: function (scope, element, attrs) {
-            element.bind('blur', function () {
-                var model = attrs['ngModel'];
-                scope[model] = DataValida(scope[model]);
-                scope.$apply();
-            });
-        }
-    };
-});
+app.factory('Empresas', ['$http', function ($http) {
+    var empresa_selecionada = '1';
+    var lista;
 
-app.factory('notas', ['$http', '$q', function ($http, $q) {
-    var carregaNotas = function(inicio, fim, empresa, servico) {
-        var deferred = $q.defer();
-        
-        $http({url: '/notas', method: 'get', params: {dataInicial: inicio, dataFinal: fim, empresa: empresa, servico: servico} })
-            .success(function (data, rstatus, headers, config) {
-                deferred.resolve(data);
-            });
-        return deferred.promise;
+    var getEmpresaSelecionada = function () {
+        return empresa_selecionada;
     }
+
+    var getLista = function() {
+        return lista;
+    }
+
+    var carregar = function(callback) {
+        $http({url: '/empresas', method: 'get'}).success(function (data) {
+            lista = data;
+            empresa_selecionada = data[0].id;
+            callback();
+        });
+    }
+
     return {
-        carregar: carregaNotas
+        carregar: carregar,
+        lista: getLista,
+        selecionada: getEmpresaSelecionada
     }
 }]);
 
-app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope, $timeout) {
-    $scope.loading = false;
-    $scope.dataInicial = DataValida('01');
-    $scope.dataFinal = DataValida('31');
-    $scope.notas = [];
-    $scope.totalGeral = 0;
+app.factory('Titulos', ['$http', '$q', function ($http, $q) {
+    var titulos = {};
 
-    $http({url: '/empresas', method: 'get'})
-        .success(function (data, rstatus, headers, config) {
-            $scope.empresas = data;
-            $scope.empresa = data[0];
-            $scope.baixaNotas();
-        });
+    titulos.carregar = function (inicio, fim, empresa, lista) {
+        var deferred = $q.defer();
+        
+        $http({ url: '/notas', method: 'get', params: { dataInicial: inicio, dataFinal: fim, empresa: empresa } })
+            .success(function (data, rstatus, headers, config) {
+                titulos.lista = data;
+                titulos.quantidade = data.length;
 
-    $http({url: '/servicos', method: 'get'})
-        .success(function (data, rstatus, headers, config) {
-            $scope.servicos = data;
-            $scope.servico = data[0];
-            $scope.baixaNotas();
-        });
+                // soma o valor das notas
+                titulos.total = 0;
+                for (var i=0; i<data.length; i++) {
+                    titulos.total += data[i].valor;
+                    lista.push(data[i].id); // adiciona o título na lista de títulos selecionados
+                }
 
-    $scope.baixaNotas = function() {
-        // Só baixa as notas quando as empresas e serviços tiverem sido carregados
-        if ($scope.empresas && $scope.servicos) {
-            $scope.loading = true;
-            $scope.notas = [];
-            $scope.empresa;
-            notas.carregar($scope.dataInicial, $scope.dataFinal, $scope.empresa.fantasia, $scope.servico.natureza)
-                .then(function (notas) {
-                    $scope.notas = notas;    
-                    $rootScope.totalNotas = notas.length;
-                    // obter o total geral das notas
-                    var total = 0;
-                    for (var i=0; i<notas.length; i++)
-                        total += notas[i].valor;
-                    $scope.totalGeral = total;
-                    $scope.loading = false;
-                });
-        }
-    };
+                deferred.resolve();
+            });
+        return deferred.promise;
+    }
 
-    $scope.baixaXML = function () {
-        $rootScope.baixando = true;
-        var sse = new EventSource('xml/gerar?dataInicial='+$scope.dataInicial+
-                                  '&dataFinal='+$scope.dataFinal+
-                                  '&empresa='+escape($scope.empresa.fantasia)+
-                                  '&servico='+escape($scope.servico.natureza));
+    return titulos
+}]);
 
-        sse.addEventListener('message', function(msg) {
+app.factory('XmlNotas', ['$rootScope', function ($rootScope) {
+    var service = {};
+
+    service.baixar = function (titulos, callback) {
+        var sse = new EventSource('xml/gerar?numeros='+titulos);
+
+        sse.addEventListener('message', function (msg) {
             if (!msg) {
                 sse.close();
             }
@@ -92,27 +75,73 @@ app.controller('NotasCtrl', function ($scope, $http, notas, $rootScope, $timeout
             }
         });
 
+        // arquivo gerado
         sse.addEventListener('end', function (msg) {
-            //console.log('arquivo gerado!', msg.data);
-            $rootScope.baixando = false;
             sse.close();
+
             // Seta o src do iframe para iniciar o download do arquivo xml
-            $scope.$apply(function() {
-                $scope.notafiscal = 'xml/baixar/'+msg.data;
+            callback(msg.data)
+        });
+    }
+
+    return service;
+}]);
+
+app.controller('NotasCtrl', function ($scope, Empresas, Titulos, XmlNotas, $rootScope) {
+    $scope.loading = false;
+    $scope.dataInicial = DataValida('01');
+    $scope.dataFinal = DataValida('31');
+    $scope.titulos_selecionados = [];
+    $scope.titulos = Titulos;    
+
+    /* Baixa a lista de empresas para preencher o combobox */
+    Empresas.carregar(function () {
+        $scope.empresas = Empresas.lista();
+        $scope.empresa_id = Empresas.selecionada();
+        $scope.listarTitulos();
+    });
+
+    /* Baixa a lista de títulos para preencher a grade */
+    $scope.listarTitulos = function () {
+        $scope.titulos_selecionados = [];
+        $scope.loading = true;
+        Titulos.carregar($scope.dataInicial, $scope.dataFinal, $scope.empresa_id, $scope.titulos_selecionados)
+            .then(function () {
+                $scope.loading = false;
+            });
+    };
+
+    /* Envia o comando para iniciar a geração do XML */
+    $scope.baixaXML = function () {
+        $rootScope.baixando = true;
+        XmlNotas.baixar($scope.titulos_selecionados, function (nome_arquivo) {
+            $scope.$apply(function () {
+                $scope.notafiscal = 'xml/baixar/'+nome_arquivo;
+                $rootScope.baixando = false;
             });
         });
     }
 
+    // adiciona ou remove um título selecionado a lista de títulos selecionados
+    $scope.toggleSelection = function toggleSelection(numero) {
+        var idx = $scope.titulos_selecionados.indexOf(numero);
+        if (idx > -1) {
+          $scope.titulos_selecionados.splice(idx, 1);
+        }
+        else {
+          $scope.titulos_selecionados.push(numero);
+        }
+    };
 });
 
-app.controller('BaixandoCtrl', function ($scope, $rootScope) {
+app.controller('BaixandoCtrl', function ($scope, $rootScope, Titulos) {
     $scope.nome = 'Iniciando a geração do arquivo XML...';
     $scope.progresso = 0;
     var contador = 0;
     $rootScope.$on('progress', function (e, nome) {
         $scope.$apply(function() {
             $scope.nome = nome;   
-            $scope.progresso = Math.round((contador*100)/$rootScope.totalNotas);
+            $scope.progresso = Math.round((contador*100)/Titulos.quantidade);
             contador += 1;
         })
     });
@@ -128,6 +157,7 @@ app.controller('ConfigCtrl', function ($scope, $http, $location) {
             $scope.estado = data.estado;
             $scope.codigo = data.codigo;
             $scope.observacoes = data.observacoes;
+            $scope.ultimo_rps = data.ultimo_rps;
         });
 
     $scope.enviar = function() {
@@ -138,7 +168,8 @@ app.controller('ConfigCtrl', function ($scope, $http, $location) {
             irrf          : parseFloat($scope.irrf),
             estado        : $scope.estado,
             observacoes   : $scope.observacoes,
-            codigo        : $scope.codigo
+            codigo        : $scope.codigo,
+            ultimo_rps    : $scope.ultimo_rps
         }
         $http({url: '/config', method: 'post', data: configuracoes})
             .success(function (data, rstatus, headers, config) {
@@ -146,6 +177,19 @@ app.controller('ConfigCtrl', function ($scope, $http, $location) {
             });
     }
     
+});
+
+app.directive('dateformat', function () {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attrs) {
+            element.bind('blur', function () {
+                var model = attrs['ngModel'];
+                scope[model] = DataValida(scope[model]);
+                scope.$apply();
+            });
+        }
+    };
 });
 
 app.directive('focus', function() {
