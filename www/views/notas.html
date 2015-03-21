@@ -1,23 +1,19 @@
-<div class="content" ng-controller="NotasCtrl">
+<div class="content">
     <div id="loading" class="loading" ng-show="loading">
         Carregando...
         <div>
             <img src="img/loading_bar.gif" />
         </div>
     </div>
+    <h1>Gerar XML das notas fiscais</h1>
     <a id="configurar" href="#/config">Configurar</a>
     <form method="POST" class="myinline">
         <fieldset>
-            <legend>Gerar XML das notas fiscais</legend>
             <div class="form-horizontal">
                 <label for="empresa">Empresa</label>
                 <select name="empresa" 
-                        ng-model="empresa" 
-                        ng-options="empresa as empresa.fantasia for empresa in empresas"></select>
-            </div>
-            <div class="form-horizontal">
-                <label for="servicos">Serviços</label>
-                <select name="servicos" ng-model="servico" ng-options="servico as servico.natureza for servico in servicos"></select>
+                        ng-model="empresa_id" 
+                        ng-options="empresa.id as empresa.fantasia for empresa in empresas"></select>
             </div>
             <div class="form-horizontal">
                 <label for="datainicial">Data Inicial</label>
@@ -26,31 +22,37 @@
             <div class="form-horizontal">
                 <label for="datafinal">Data final</label>
                 <input type="text" dateformat ng-model="dataFinal" name="datafinal" class="data"> 
-                <button ng-click="baixaNotas(dataInicial, dataFinal)" ng-disabled="loading" class="btn btn-primary">Listar</button>
-                <button ng-click="baixaXML()" ng-show="!loading && notas" class="btn">Baixar XML</button>
+                <button ng-click="listarTitulos()" ng-disabled="loading" class="btn btn-primary">Listar</button>
+                <button ng-click="baixaXML()" ng-show="!loading && titulos" class="btn">Baixar XML</button>
             </div>
         </fieldset>
     </form>
 
     <div style="text-align: right">
-        <span style="font-weight: bold">{{notas.length}}</span> notas | Total: 
-        <span style="font-weight: bold">{{totalGeral|formatavalor}}</span>
+        <span style="font-weight: bold">{{titulos.qtde}}</span> titulos | Total: 
+        <span style="font-weight: bold">{{titulos.total|formatavalor}}</span>
     </div>
 
     <table class="table table-condensed table-hover">
         <tr>
+            <th>X</th>
             <th>Emissão</th>
-            <th>Número</th>
+            <th>Nosso Número</th>
             <th>Nome</th>
             <th>CPF/CNPJ</th>
             <th>Valor</th>
         </tr>
-        <tr ng-repeat="nota in notas">
-            <td>{{nota.emissao|formatadata}}</td>
-            <td>{{nota.numero}}</td>
-            <td>{{nota.nome}}</td>
-            <td>{{nota.cpfcgc}}</td>
-            <td>{{nota.valor|formatavalor}}</td>
+        <tr ng-repeat="titulo in titulos.lista">
+            <td><input type="checkbox" 
+                       name="boletos[]" 
+                       value="{{titulo.id}}" 
+                       ng-checked="titulos_selecionados.indexOf(titulo.id) > -1"
+                       ng-click="toggleSelection(titulo.id)"></td>
+            <td>{{titulo.emissao|formatadata}}</td>
+            <td>{{titulo.nossonumero}}</td>
+            <td>{{titulo.nome}}</td>
+            <td>{{titulo.cpfcgc}}</td>
+            <td>{{titulo.valor|formatavalor}}</td>
         </tr>
     </table>
 
@@ -58,5 +60,6 @@
 
     <div id="overlay" ng-show="baixando">
     </div>
+
 </div>
 
