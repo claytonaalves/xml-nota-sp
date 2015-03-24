@@ -3,18 +3,19 @@
 """
 Gera um arquivo XML com notas fiscais para importação no provedor de SP.
 """
+
 import os
 import re
 from lxml import etree
 import sys
-from tmp import notas_generator
+from dbVigo9 import notas_generator
 
 try:
     import json
 except ImportError:
     import simplejson as json
 
-mes = 'janeiro_2015'
+filename = sys.argv[1]
 
 # lê as configurações salvas
 f = open('config.json', 'r')
@@ -23,8 +24,8 @@ f.close()
 
 root = etree.Element("importacao")
 
-for nf in notas_generator():
-    print nf[0], nf[2]
+for nf in notas_generator(os.getenv('TITULOS')):
+    print nf[0], nf[2].encode("utf8")
 
     nota = etree.SubElement(root, "nota")
 
@@ -117,7 +118,6 @@ for nf in notas_generator():
     estado.text = config['estado']
 
     discriminacao = etree.SubElement(nota, "discriminacao")
-    #discriminacao.appendChild(doc.createTextNode(nf[12].decode('latin1')))
     discriminacao.text = config['discriminacao']
 
     observacoes = etree.SubElement(nota, "observacoes")
@@ -130,7 +130,6 @@ for nf in notas_generator():
     servico = etree.SubElement(servicos, "servico")
 
     codigo = etree.SubElement(servico, "codigo")
-    #codigo.text = '1.09'
     codigo.text = config['codigo']
 
     basecalculo = etree.SubElement(servico, "basecalculo")
@@ -150,6 +149,6 @@ xml = etree.tostring(root,
                      xml_declaration=True,
                      pretty_print=True)
 
-f = open('%s.xml' % mes,'wb')
+f = open(filename, 'w')
 f.write(xml)
 f.close()
