@@ -6,149 +6,72 @@ Gera um arquivo XML com notas fiscais para importação no provedor de SP.
 
 import os
 import re
-from lxml import etree
 import sys
 from dbVigo9 import notas_generator
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
+from NFSe_SP import XML, Nota, Servico
+from config import config
 
 filename = sys.argv[1]
 
-# lê as configurações salvas
-f = open('config.json', 'r')
-config = json.load(f)
-f.close()
-
-root = etree.Element("importacao")
+xml = XML()
 
 for nf in notas_generator(os.getenv('TITULOS')):
-    print nf[0], nf[2].encode("utf8")
+    rps = config.ultimo_rps + 1
+    print rps, nf[1].encode("utf8")
 
-    nota = etree.SubElement(root, "nota")
+    nota = Nota()
 
-    node      = etree.SubElement(nota, "rps_numero")
-    node.text = str(nf[0])
+    nota.rps_numero             = str(rps)
+    nota.rps_data               = str(nf[0])
+    nota.tomador_nome           = nf[1]
+    nota.tomador_cnpjcpf        = nf[2]
+    nota.tomador_inscrmunicipal = nf[3].strip()
+    nota.tomador_inscrestadual  = nf[14]
 
-    node      = etree.SubElement(nota, "rps_data")
-    node.text = str(nf[1])
+    logradouro = re.sub(',.+$', '', nf[4])
+    numero = re.sub(u'.+,\s*[Nn]*[º°]*\s*', '', nf[4])
+    numero = re.sub(u'[^\d]', '', nf[4])
 
-    node      = etree.SubElement(nota, "tomador_nome")
-    node.text = nf[2]
+    nota.tomador_logradouro  = logradouro
+    nota.tomador_numero      = numero
+    nota.tomador_complemento = nf[5]
+    nota.tomador_bairro      = nf[6]
+    nota.tomador_cep         = nf[7]
+    nota.tomador_municipio   = nf[8]
+    nota.tomador_uf          = nf[9]
+    nota.tomador_email       = nf[10]
+    nota.valortotal          = '%.2f' % float(nf[12])
+    nota.deducoes            = config.deducoes
+    nota.acrescimo           = '0.00'
+    nota.basecalculo         = '%.2f' % float(nf[12])
+    nota.aliqpercentual      = '2.00'
+    nota.valoriss            = '0.00'
+    nota.issretido           = '0.00'
+    nota.cofins              = '0.00'
+    nota.irrf                = config.irrf
+    nota.contribuicaosocial  = '0.00'
+    nota.pispasep            = '0.00'
+    nota.inss                = config.inss
+    nota.totalretencoes      = '0.00'
+    nota.estado              = config.estado
+    nota.discriminacao       = config.discriminacao
+    nota.observacoes         = config.observacoes
+    nota.motivocancelamento  = ''
 
-    node      = etree.SubElement(nota, "tomador_cnpjcpf")
-    node.text = nf[3]
+    servico               = Servico()
+    servico.codigo        = config.codigo
+    servico.basecalculo   = '%.2f' % float(nf[12])
+    servico.valoriss      = '0.00'
+    servico.issretido     = "%.2f" % nf[13]
+    servico.discriminacao = nf[11]
 
-    node      = etree.SubElement(nota, "tomador_inscrmunicipal")
-    node.text = nf[4].strip()
+    nota.adiciona(servico)
+    xml.adiciona(nota)
 
-    node = etree.SubElement(nota, "tomador_inscrestadual")
-    node.text = nf[15]
+    config.ultimo_rps = rps
 
-    logradouro = re.sub(',.+$', '', nf[5])
-    numero = re.sub(u'.+,\s*[Nn]*[º°]*\s*', '', nf[5])
-    numero = re.sub(u'[^\d]', '', nf[5])
+config.salva()
 
-    node = etree.SubElement(nota, "tomador_logradouro")
-    node.text = logradouro
-
-    node = etree.SubElement(nota, "tomador_numero")
-    node.text = numero
-
-    node = etree.SubElement(nota, "tomador_complemento")
-    node.text = nf[6]
-
-    node = etree.SubElement(nota, "tomador_bairro")
-    node.text = nf[7]
-
-    tomador_cep = etree.SubElement(nota, "tomador_cep")
-    tomador_cep.text = nf[8]
-
-    tomador_municipio = etree.SubElement(nota, "tomador_municipio")
-    tomador_municipio.text = nf[9]
-
-    tomador_uf = etree.SubElement(nota, "tomador_uf")
-    tomador_uf.text = nf[10]
-
-    tomador_email = etree.SubElement(nota, "tomador_email")
-    tomador_email.text = nf[11]
-
-    valortotal = etree.SubElement(nota, "valortotal")
-    valortotal.text = '%.2f' % float(nf[13])
-
-    deducoes = etree.SubElement(nota, "deducoes")
-    deducoes.text = "%.2f" % config['deducoes']
-
-    acrescimo = etree.SubElement(nota, "acrescimo")
-    acrescimo.text = '0.00'
-
-    basecalculo = etree.SubElement(nota, "basecalculo")
-    basecalculo.text = '%.2f' % float(nf[13])
-
-    aliqpercentual = etree.SubElement(nota, "aliqpercentual")
-    aliqpercentual.text = '2.00'
-
-    valoriss = etree.SubElement(nota, "valoriss")
-    valoriss.text = '0.00'
-
-    issretido = etree.SubElement(nota, "issretido")
-    issretido.text = '0.00'
-
-    cofins = etree.SubElement(nota, "cofins")
-    cofins.text = '0.00'
-
-    irrf = etree.SubElement(nota, "irrf")
-    irrf.text = "%.2f" % config['irrf']
-
-    contribuicaosocial = etree.SubElement(nota, "contribuicaosocial")
-    contribuicaosocial.text = '0.00'
-
-    pispasep = etree.SubElement(nota, "pispasep")
-    pispasep.text = '0.00'
-
-    inss = etree.SubElement(nota, "inss")
-    inss.text = "%.2f" % config['inss']
-
-    totalretencoes = etree.SubElement(nota, "totalretencoes")
-    totalretencoes.text = '0.00'
-
-    estado = etree.SubElement(nota, "estado")
-    estado.text = config['estado']
-
-    discriminacao = etree.SubElement(nota, "discriminacao")
-    discriminacao.text = config['discriminacao']
-
-    observacoes = etree.SubElement(nota, "observacoes")
-    observacoes.text = config['observacoes']
-
-    motivocancelamento = etree.SubElement(nota, "motivocancelamento")
-    motivocancelamento.text = ''
-
-    servicos = etree.SubElement(nota, "servicos")
-    servico = etree.SubElement(servicos, "servico")
-
-    codigo = etree.SubElement(servico, "codigo")
-    codigo.text = config['codigo']
-
-    basecalculo = etree.SubElement(servico, "basecalculo")
-    basecalculo.text = '%.2f' % float(nf[13])
-
-    valoriss = etree.SubElement(servico, "valoriss")
-    valoriss.text = '0.00'
-
-    issretido = etree.SubElement(servico, "issretido")
-    issretido.text = "%.2f" % nf[14]
-
-    discriminacao = etree.SubElement(servico, "discriminacao")
-    discriminacao.text = nf[12]
-
-xml = etree.tostring(root, 
-                     encoding='iso-8859-1',
-                     xml_declaration=True,
-                     pretty_print=True)
-
-f = open(filename, 'w')
-f.write(xml)
-f.close()
+xml_file = open(filename, 'w')
+xml_file.write(xml.tostring())
+xml_file.close()
