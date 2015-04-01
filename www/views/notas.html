@@ -16,11 +16,11 @@
                         ng-options="empresa.id as empresa.fantasia for empresa in empresas"></select>
             </div>
             <div class="form-horizontal">
-                <label for="datainicial">Data Inicial</label>
+                <label for="datainicial">Vcto Inicial</label>
                 <input type="text" dateformat ng-model="dataInicial" name="datainicial" class="data"> 
             </div>
             <div class="form-horizontal">
-                <label for="datafinal">Data final</label>
+                <label for="datafinal">Vcto final</label>
                 <input type="text" dateformat ng-model="dataFinal" name="datafinal" class="data"> 
                 <button ng-click="listarTitulos()" ng-disabled="loading" class="btn btn-primary">Listar</button>
                 <button ng-click="baixaXML()" ng-show="!loading && titulos" class="btn">Baixar XML</button>
