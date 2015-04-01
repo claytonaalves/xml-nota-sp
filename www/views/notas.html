@@ -16,6 +16,12 @@
                         ng-options="empresa.id as empresa.fantasia for empresa in empresas"></select>
             </div>
             <div class="form-horizontal">
+                <label for="vendedor">Vendedor</label>
+                <select name="vendedor" 
+                        ng-model="vendedor_id" 
+                        ng-options="vendedor.id as vendedor.nome for vendedor in vendedores"></select>
+            </div>
+            <div class="form-horizontal">
                 <label for="datainicial">Vcto Inicial</label>
                 <input type="text" dateformat ng-model="dataInicial" name="datainicial" class="data"> 
             </div>
