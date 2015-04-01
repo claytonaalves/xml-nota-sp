@@ -38,6 +38,12 @@ app.get('/empresas', function (req, res) {
     });
 });
 
+app.get('/funcionarios', function (req, res) {
+    database.funcionarios(function(rows) {
+        res.send(rows);
+    });
+});
+
 app.get('/notas', function (req, res) {
     var q = req.query;
     var data1 = moment(q.dataInicial, "DD/MM/YYYY").format("YYYY-MM-DD");
