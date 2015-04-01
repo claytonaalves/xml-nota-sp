@@ -53,7 +53,7 @@ app.get('/notas', function (req, res) {
 app.get('/xml/gerar', function(req, res)  {
     var q = req.query;
 
-    req.socket.setTimeout(Infinity);
+    req.socket.setTimeout(2147483647);
  
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
