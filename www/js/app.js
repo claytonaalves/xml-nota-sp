@@ -34,13 +34,40 @@ app.factory('Empresas', ['$http', function ($http) {
     }
 }]);
 
+app.factory('Vendedores', ['$http', function ($http) {
+    var lista;
+
+    var getLista = function() {
+        return lista;
+    }
+
+    var carregar = function(callback) {
+        $http({url: '/funcionarios', method: 'get'}).success(function (data) {
+            lista = data;
+            callback();
+        });
+    }
+
+    return {
+        carregar: carregar,
+        lista: getLista,
+    }
+}]);
+
 app.factory('Titulos', ['$http', '$q', function ($http, $q) {
     var titulos = {};
 
-    titulos.carregar = function (inicio, fim, empresa, lista) {
+    titulos.carregar = function (scope) {
         var deferred = $q.defer();
-        
-        $http({ url: '/notas', method: 'get', params: { dataInicial: inicio, dataFinal: fim, empresa: empresa } })
+        var lista = scope.titulos_selecionados;
+
+        var params = { dataInicial : scope.dataInicial,
+                       dataFinal   : scope.dataFinal,
+                       empresa     : scope.empresa_id,
+                       vendedor_id : scope.vendedor_id,
+                       pagamento   : scope.pagamento }
+
+        $http({ url: '/notas', method: 'get', params: params })
             .success(function (data, rstatus, headers, config) {
                 titulos.lista = data;
                 titulos.quantidade = data.length;
@@ -87,12 +114,13 @@ app.factory('XmlNotas', ['$rootScope', function ($rootScope) {
     return service;
 }]);
 
-app.controller('NotasCtrl', function ($scope, Empresas, Titulos, XmlNotas, $rootScope) {
+app.controller('NotasCtrl', function ($scope, Empresas, Vendedores, Titulos, XmlNotas, $rootScope) {
     $scope.loading = false;
     $scope.dataInicial = DataValida('01');
     $scope.dataFinal = DataValida('31');
     $scope.titulos_selecionados = [];
     $scope.titulos = Titulos;    
+    $scope.pagamento = "todos";
 
     /* Baixa a lista de empresas para preencher o combobox */
     Empresas.carregar(function () {
@@ -101,11 +129,16 @@ app.controller('NotasCtrl', function ($scope, Empresas, Titulos, XmlNotas, $root
         $scope.listarTitulos();
     });
 
+    Vendedores.carregar(function () {
+        $scope.vendedores = Vendedores.lista();
+        $scope.vendedor_id = 1;
+    });
+
     /* Baixa a lista de títulos para preencher a grade */
     $scope.listarTitulos = function () {
         $scope.titulos_selecionados = [];
         $scope.loading = true;
-        Titulos.carregar($scope.dataInicial, $scope.dataFinal, $scope.empresa_id, $scope.titulos_selecionados)
+        Titulos.carregar($scope)
             .then(function () {
                 $scope.loading = false;
             });

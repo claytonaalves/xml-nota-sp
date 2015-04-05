@@ -17,10 +17,30 @@
             </div>
             <div class="form-horizontal">
                 <label for="vendedor">Vendedor</label>
-                <select name="vendedor" 
-                        ng-model="vendedor_id" 
-                        ng-options="vendedor.id as vendedor.nome for vendedor in vendedores"></select>
+                <select name="vendedor" ng-model="vendedor_id">
+                    <option ng-repeat="vendedor in vendedores" value="{{vendedor.id}}">{{vendedor.id}} - {{vendedor.nome}}</option>
+                </select>
             </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="pg" value="pagos" ng-model="pagamento">
+                    Pagos
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="pg" value="naopagos" ng-model="pagamento">
+                    Não Pagos
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="pg" value="todos" ng-model="pagamento">
+                    Todos
+                </label>
+            </div>
+        </fieldset>
+        <fieldset>
             <div class="form-horizontal">
                 <label for="datainicial">Vcto Inicial</label>
                 <input type="text" dateformat ng-model="dataInicial" name="datainicial" class="data"> 
@@ -43,6 +63,7 @@
         <tr>
             <th>X</th>
             <th>Emissão</th>
+            <th>Vencimento</th>
             <th>Nosso Número</th>
             <th>Nome</th>
             <th>CPF/CNPJ</th>
@@ -55,6 +76,7 @@
                        ng-checked="titulos_selecionados.indexOf(titulo.id) > -1"
                        ng-click="toggleSelection(titulo.id)"></td>
             <td>{{titulo.emissao|formatadata}}</td>
+            <td>{{titulo.vencimento|formatadata}}</td>
             <td>{{titulo.nossonumero}}</td>
             <td>{{titulo.nome}}</td>
             <td>{{titulo.cpfcgc}}</td>

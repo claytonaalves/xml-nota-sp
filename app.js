@@ -46,10 +46,15 @@ app.get('/funcionarios', function (req, res) {
 
 app.get('/notas', function (req, res) {
     var q = req.query;
-    var data1 = moment(q.dataInicial, "DD/MM/YYYY").format("YYYY-MM-DD");
-    var data2 = moment(q.dataFinal, "DD/MM/YYYY").format("YYYY-MM-DD");
 
-    database.notas(data1, data2, q.empresa, q.servico, function (err, rows) {
+    titulos = new database.Titulos();
+    titulos.dataInicial = moment(q.dataInicial, "DD/MM/YYYY").format("YYYY-MM-DD");
+    titulos.dataFinal   = moment(q.dataFinal, "DD/MM/YYYY").format("YYYY-MM-DD");
+    titulos.empresa_id  = q.empresa;
+    titulos.vendedor_id = q.vendedor_id || 1;
+    titulos.pagamento   = q.pagamento;
+
+    titulos.listar(function (err, rows) {
         if (err) throw err;
         res.send(rows);
     });

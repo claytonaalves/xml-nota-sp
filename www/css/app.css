@@ -297,3 +297,12 @@ h1 {
 #buttonbar {
     display: block;
 }
+
+.radio {
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+fieldset {
+    margin-top: 10px;
+}
