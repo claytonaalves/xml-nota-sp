@@ -55,8 +55,8 @@
     </form>
 
     <div style="text-align: right">
-        <span style="font-weight: bold">{{titulos.qtde}}</span> titulos | Total: 
-        <span style="font-weight: bold">{{titulos.total|formatavalor}}</span>
+        <span style="font-weight: bold">{{titulos.selecionados.quantidade}}</span> títulos selecionados| Total: 
+        <span style="font-weight: bold">{{titulos.selecionados.total|formatavalor}}</span>
     </div>
 
     <table class="table table-condensed table-hover">
@@ -73,7 +73,7 @@
             <td><input type="checkbox" 
                        name="boletos[]" 
                        value="{{titulo.id}}" 
-                       ng-checked="titulos_selecionados.indexOf(titulo.id) > -1"
+                       ng-checked="titulos.selecionados.indexOf(titulo.id) > -1"
                        ng-click="toggleSelection(titulo.id)"></td>
             <td>{{titulo.emissao|formatadata}}</td>
             <td>{{titulo.vencimento|formatadata}}</td>

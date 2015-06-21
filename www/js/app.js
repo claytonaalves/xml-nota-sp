@@ -2,7 +2,7 @@ var app = angular.module("appNota", ['ngRoute']);
 
 app.config(['$routeProvider', function ($routeProvider) {
     $routeProvider.
-        when('/', {templateUrl: 'views/notas.html', controller: 'NotasCtrl'}).
+        when('/', {templateUrl: 'views/notas.html', controller: 'TitulosCtrl'}).
         when('/config', {templateUrl: 'views/config.html', controller: 'ConfigCtrl'}).
         otherwise({redirectTo: '/'});
 }]);
@@ -56,10 +56,11 @@ app.factory('Vendedores', ['$http', function ($http) {
 
 app.factory('Titulos', ['$http', '$q', function ($http, $q) {
     var titulos = {};
+    var selecionados = [];
 
     titulos.carregar = function (scope) {
         var deferred = $q.defer();
-        var lista = scope.titulos_selecionados;
+        titulos.selecionados = [];
 
         var params = { dataInicial : scope.dataInicial,
                        dataFinal   : scope.dataFinal,
@@ -70,18 +71,39 @@ app.factory('Titulos', ['$http', '$q', function ($http, $q) {
         $http({ url: '/notas', method: 'get', params: params })
             .success(function (data, rstatus, headers, config) {
                 titulos.lista = data;
-                titulos.quantidade = data.length;
-
-                // soma o valor das notas
-                titulos.total = 0;
-                for (var i=0; i<data.length; i++) {
-                    titulos.total += data[i].valor;
-                    lista.push(data[i].id); // adiciona o título na lista de títulos selecionados
-                }
-
+				for (var i=0; i<data.length; i++)
+					titulos.selecionados.push(data[i].id); // adiciona o título na lista de títulos selecionados
+				titulos.totaliza(scope);
                 deferred.resolve();
             });
         return deferred.promise;
+    }
+
+	// Totaliza os títulos selecionados
+    titulos.totaliza = function (scope) {
+		titulos.selecionados.total = 0;
+        titulos.selecionados.quantidade = 0;
+		for (var i=0; i<titulos.lista.length; i++) {
+			var numero = titulos.lista[i].id;
+			var idx = titulos.selecionados.indexOf(numero);
+			if (idx > -1) {
+				titulos.selecionados.total += titulos.lista[i].valor;
+				titulos.selecionados.quantidade += 1;
+			}
+		}
+        scope.$broadcast('totaliza');
+    }
+
+    // adiciona ou remove um título selecionado a lista de títulos selecionados
+    titulos.marca_desmarca = function (scope, numero) {
+        var idx = titulos.selecionados.indexOf(numero);
+        if (idx > -1) {
+           titulos.selecionados.splice(idx, 1);
+        }
+        else {
+           titulos.selecionados.push(numero);
+        }
+		titulos.totaliza(scope);
     }
 
     return titulos
@@ -114,11 +136,10 @@ app.factory('XmlNotas', ['$rootScope', function ($rootScope) {
     return service;
 }]);
 
-app.controller('NotasCtrl', function ($scope, Empresas, Vendedores, Titulos, XmlNotas, $rootScope) {
+app.controller('TitulosCtrl', function ($scope, Empresas, Vendedores, Titulos, XmlNotas, $rootScope) {
     $scope.loading = false;
     $scope.dataInicial = DataValida('01');
     $scope.dataFinal = DataValida('31');
-    $scope.titulos_selecionados = [];
     $scope.titulos = Titulos;    
     $scope.pagamento = "todos";
 
@@ -136,7 +157,6 @@ app.controller('NotasCtrl', function ($scope, Empresas, Vendedores, Titulos, Xml
 
     /* Baixa a lista de títulos para preencher a grade */
     $scope.listarTitulos = function () {
-        $scope.titulos_selecionados = [];
         $scope.loading = true;
         Titulos.carregar($scope)
             .then(function () {
@@ -147,7 +167,7 @@ app.controller('NotasCtrl', function ($scope, Empresas, Vendedores, Titulos, Xml
     /* Envia o comando para iniciar a geração do XML */
     $scope.baixaXML = function () {
         $rootScope.baixando = true;
-        XmlNotas.baixar($scope.titulos_selecionados, function (nome_arquivo) {
+        XmlNotas.baixar($scope.titulos.selecionados, function (nome_arquivo) {
             $scope.$apply(function () {
                 $scope.notafiscal = 'xml/baixar/'+nome_arquivo;
                 $rootScope.baixando = false;
@@ -155,16 +175,14 @@ app.controller('NotasCtrl', function ($scope, Empresas, Vendedores, Titulos, Xml
         });
     }
 
-    // adiciona ou remove um título selecionado a lista de títulos selecionados
-    $scope.toggleSelection = function toggleSelection(numero) {
-        var idx = $scope.titulos_selecionados.indexOf(numero);
-        if (idx > -1) {
-          $scope.titulos_selecionados.splice(idx, 1);
-        }
-        else {
-          $scope.titulos_selecionados.push(numero);
-        }
-    };
+    $scope.$on('totaliza', function (e) {
+        $scope.qtde_titulos_selecionados = Titulos.selecionados.quantidade;
+        $scope.total_titulos_selecionados = Titulos.selecionados.total;
+    });
+
+    $scope.toggleSelection = function (numero) {
+        Titulos.marca_desmarca($scope, numero);
+	}
 });
 
 app.controller('BaixandoCtrl', function ($scope, $rootScope, Titulos) {
