@@ -12,7 +12,7 @@ var port = 8010;
 
 database.configure(db.host, db.username, db.password, db.database);
 
-//process.chdir('/var/www/app');
+process.chdir('/opt/appnotas');
 
 app.use(express.bodyParser());
 app.use(express.logger());
@@ -99,10 +99,10 @@ app.post('/config', function (req, res) {
     res.send('ok');
 });
 
-app.listen(port /* , function() {
+app.listen(port, function() {
 	process.setgid(nodeUserGid);
 	process.setuid(nodeUserUid);
-} */ );
+});
 
 console.log('Servidor iniciado... http://localhost:'+port+'/');
 
