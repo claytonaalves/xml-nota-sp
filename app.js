@@ -12,7 +12,7 @@ var port = 8010;
 
 database.configure(db.host, db.username, db.password, db.database);
 
-process.chdir('/opt/appnotas');
+process.chdir(__dirname);
 
 app.use(express.bodyParser());
 app.use(express.logger());
