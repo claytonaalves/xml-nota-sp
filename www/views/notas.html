@@ -42,11 +42,11 @@
         </fieldset>
         <fieldset>
             <div class="form-horizontal">
-                <label for="datainicial">Vcto Inicial</label>
+                <label for="datainicial">Pgto. inicial</label>
                 <input type="text" dateformat ng-model="dataInicial" name="datainicial" class="data"> 
             </div>
             <div class="form-horizontal">
-                <label for="datafinal">Vcto final</label>
+                <label for="datafinal">Pgto. Final</label>
                 <input type="text" dateformat ng-model="dataFinal" name="datafinal" class="data"> 
                 <button ng-click="listarTitulos()" ng-disabled="loading" class="btn btn-primary">Listar</button>
                 <button ng-click="baixaXML()" ng-show="!loading && titulos" class="btn">Baixar XML</button>
